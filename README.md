@@ -37,6 +37,7 @@ premier lancement (≈ 5 Mo, ensuite en cache navigateur).
 - `docs/decisions/` — ADR : une page par décision structurante, avec les alternatives écartées.
 - `docs/exercices/` — spécification de la bibliothèque d'exercices, à co-écrire avec les kinés partenaires.
 - `docs/journal.md` — retours de tests réels et ajustements de seuils.
+- `docs/idees.md` — pistes futures non planifiées, avec leurs coûts et contraintes.
 
 ## Architecture
 
