@@ -6,6 +6,7 @@
   --muted: #94a3b8;
   --accent: #4ade80;
   --warn: #f97316;
+  --header-h: 52px;
   color-scheme: dark;
 }
 
@@ -22,7 +23,8 @@ header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.6rem 1rem;
+  height: var(--header-h);
+  padding: 0 1rem;
   border-bottom: 1px solid var(--border);
 }
 header h1 { margin: 0; font-size: 1.2rem; }
@@ -44,9 +46,57 @@ button:disabled { opacity: 0.4; cursor: default; }
 button.primary { background: var(--accent); color: #052e16; border-color: transparent; font-weight: 600; }
 select { background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 0.4rem; }
 
-/* --- Séance & replay --- */
-.live, .replay-body { display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; }
-@media (max-width: 800px) { .live, .replay-body { grid-template-columns: 1fr; } }
+/* --- Séance : caméra plein cadre, HUD en surimpression --- */
+main:has(.live) { padding: 0; max-width: none; }
+.live {
+  position: relative;
+  height: calc(100dvh - var(--header-h));
+  background: #000;
+  overflow: hidden;
+}
+.live video, .live canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.live video { transform: scaleX(-1); }
+.hud {
+  position: absolute;
+  left: 0; right: 0;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+.hud button, .hud select { pointer-events: auto; }
+.hud-top { top: 0; background: linear-gradient(rgba(0,0,0,0.65), transparent); }
+.hud-bottom { bottom: 0; padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); background: linear-gradient(transparent, rgba(0,0,0,0.75)); }
+.hud-reps { display: flex; align-items: baseline; gap: 0.5rem; }
+.hud-reps .value { font-size: 3.5rem; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; text-shadow: 0 1px 4px #000; }
+.hud-reps .label { color: var(--muted); font-size: 1rem; }
+.hud-grid { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.hud-grid .metric { background: rgba(15, 23, 42, 0.7); padding: 0.3rem 0.6rem; min-width: 5.5rem; }
+.hud-grid .metric .value { font-size: 1.1rem; }
+.hud .status { font-size: 0.9rem; background: rgba(0,0,0,0.6); border-radius: 6px; padding: 0.3rem 0.6rem; align-self: flex-start; }
+.hud .status:empty { display: none; }
+.hud .instructions {
+  pointer-events: auto;
+  background: rgba(15, 23, 42, 0.7);
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.9rem;
+}
+.hud .instructions summary { cursor: pointer; color: var(--muted); user-select: none; }
+.hud .instructions ul { margin: 0.4rem 0 0; padding-left: 1.2rem; }
+.hud .actions { margin-top: 0; }
+.hud .actions button { flex: 1; padding: 0.9rem; font-size: 1.1rem; }
+
+/* --- Replay --- */
+.replay-body { display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; }
+@media (max-width: 800px) { .replay-body { grid-template-columns: 1fr; } }
 
 .stage {
   position: relative;
@@ -74,6 +124,18 @@ select { background: var(--panel); color: var(--text); border: 1px solid var(--b
 }
 .stage .status:empty { display: none; }
 .stage.dark { background: #020617; }
+/* Scène du replay : hauteur bornée à l'écran, canvas centré au format de la vidéo source */
+.replay .stage { aspect-ratio: auto; height: min(65vh, 720px); }
+.replay .stage canvas {
+  width: auto; height: auto;
+  inset: auto;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  touch-action: none;
+}
+.replay .stage canvas.orbit { cursor: grab; }
+.replay .stage canvas.orbit:active { cursor: grabbing; }
+.controls button.active { background: var(--accent); color: #052e16; }
 
 .panel {
   background: var(--panel);

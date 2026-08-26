@@ -1,7 +1,7 @@
 import { AngleSmoother, computeAngles } from "../geometry/angles";
 import { EXERCISES } from "../scoring/exercise";
 import { loadSession, type SessionRecord } from "../storage/db";
-import { KNEE_HIGHLIGHT, drawSkeleton, frameAt } from "./skeleton";
+import { KNEE_HIGHLIGHT, drawSkeleton, drawSkeleton3D, frameAt, type Orbit } from "./skeleton";
 
 const SPEEDS = [0.25, 0.5, 1, 2];
 
@@ -50,6 +50,7 @@ export async function renderReplay(root: HTMLElement, sessionId: string, onBack:
           <button data-a="play" title="Espace">▶</button>
           <span class="time"><span data-t="cur">0.0</span> / ${(durationMs / 1000).toFixed(1)} s</span>
           <select data-a="speed">${SPEEDS.map((s) => `<option value="${s}" ${s === 1 ? "selected" : ""}>${s}×</option>`).join("")}</select>
+          <button data-a="view3d" title="Vue 3D — glisser pour tourner">3D</button>
         </div>
         <div class="track">
           <canvas class="curve"></canvas>
@@ -83,17 +84,26 @@ export async function renderReplay(root: HTMLElement, sessionId: string, onBack:
   });
 
   let t = 0;
+  let view3d = false;
+  const orbit: Orbit = { yaw: Math.PI, pitch: 0 }; // vue initiale : face au patient (miroir)
   let playing = false;
   let speed = 1;
   let rafId = 0;
   let lastTick = 0;
 
+  const aspect = session.aspectRatio ?? 16 / 9;
+
   function resize() {
+    // Le canvas prend le plus grand rectangle au format de la vidéo source qui tient dans la scène.
     const stage = skel.parentElement!;
-    const w = stage.clientWidth, h = stage.clientHeight;
+    const sw = stage.clientWidth, sh = stage.clientHeight;
+    const w = Math.round(Math.min(sw, sh * aspect));
+    const h = Math.round(w / aspect);
     if (skel.width !== w || skel.height !== h) {
       skel.width = w;
       skel.height = h;
+      skel.style.width = `${w}px`;
+      skel.style.height = `${h}px`;
     }
     const cw = curve.clientWidth, ch = curve.clientHeight;
     if (curve.width !== cw || curve.height !== ch) {
@@ -134,7 +144,10 @@ export async function renderReplay(root: HTMLElement, sessionId: string, onBack:
     resize();
     sctx.clearRect(0, 0, skel.width, skel.height);
     const f = frameAt(frames, t);
-    if (f) drawSkeleton(sctx, f, { mirror: true, highlight: KNEE_HIGHLIGHT });
+    if (f) {
+      if (view3d) drawSkeleton3D(sctx, f, orbit, { highlight: KNEE_HIGHLIGHT });
+      else drawSkeleton(sctx, f, { mirror: true, highlight: KNEE_HIGHLIGHT });
+    }
     range.value = String(t);
     curLabel.textContent = (t / 1000).toFixed(1);
     const active = reps.find((r) => t >= r.tStart && t <= r.tEnd);
@@ -172,6 +185,31 @@ export async function renderReplay(root: HTMLElement, sessionId: string, onBack:
       cancelAnimationFrame(rafId);
     }
   }
+
+  // Vue 3D : bascule + orbite au glisser (souris ou doigt)
+  const btn3d = root.querySelector<HTMLButtonElement>('[data-a="view3d"]')!;
+  btn3d.onclick = () => {
+    view3d = !view3d;
+    btn3d.classList.toggle("active", view3d);
+    skel.classList.toggle("orbit", view3d);
+    draw();
+  };
+  let drag: { x: number; y: number } | null = null;
+  skel.addEventListener("pointerdown", (e) => {
+    if (!view3d) return;
+    drag = { x: e.clientX, y: e.clientY };
+    skel.setPointerCapture(e.pointerId);
+  });
+  skel.addEventListener("pointermove", (e) => {
+    if (!drag) return;
+    orbit.yaw += (e.clientX - drag.x) * 0.01;
+    orbit.pitch = Math.max(-1.2, Math.min(1.2, orbit.pitch + (e.clientY - drag.y) * 0.01));
+    drag = { x: e.clientX, y: e.clientY };
+    if (!playing) draw();
+  });
+  const endDrag = () => (drag = null);
+  skel.addEventListener("pointerup", endDrag);
+  skel.addEventListener("pointercancel", endDrag);
 
   btnPlay.onclick = () => setPlaying(!playing);
   speedSel.onchange = () => (speed = Number(speedSel.value));
