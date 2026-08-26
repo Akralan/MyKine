@@ -38,6 +38,7 @@ export class CameraPoseSource implements PoseSource {
       video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
       audio: false,
     });
+    await this.applyMinZoom();
     this.video.srcObject = this.stream;
     await this.video.play();
 
@@ -75,6 +76,22 @@ export class CameraPoseSource implements PoseSource {
       this.rafId = requestAnimationFrame(loop);
     };
     this.rafId = requestAnimationFrame(loop);
+  }
+
+  /**
+   * Dézoom maximal si la caméra expose une contrainte `zoom` (pas standardisée
+   * dans les types DOM, d'où le cast). Ignoré silencieusement sinon.
+   */
+  private async applyMinZoom(): Promise<void> {
+    const track = this.stream?.getVideoTracks()[0];
+    if (!track) return;
+    const caps = track.getCapabilities() as MediaTrackCapabilities & { zoom?: { min: number } };
+    if (caps.zoom === undefined) return;
+    try {
+      await track.applyConstraints({ advanced: [{ zoom: caps.zoom.min } as MediaTrackConstraintSet] });
+    } catch {
+      /* caméra sans zoom réglable */
+    }
   }
 
   stop(): void {
