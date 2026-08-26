@@ -1,0 +1,23 @@
+{
+  "name": "mycoach",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "MyCoach — démo mono-exercice : pose estimation on-device, scoring par angles articulaires, replay squelette.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2",
+    "vitest": "^4.1.11"
+  },
+  "dependencies": {
+    "@mediapipe/tasks-vision": "^1.0.1",
+    "idb": "^8.0.3"
+  }
+}
