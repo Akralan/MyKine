@@ -12,8 +12,19 @@ npm test         # tests unitaires (angles, compteur de reps)
 npm run build
 ```
 
-La caméra exige un contexte sécurisé : `localhost` fonctionne tel quel. Pour tester sur un
-téléphone via le réseau local, il faut servir en HTTPS (ex. `@vitejs/plugin-basic-ssl`).
+Le serveur de dev est en HTTPS (certificat auto-signé via `@vitejs/plugin-basic-ssl`) parce que
+la caméra exige un contexte sécurisé. Accepter l'avertissement du navigateur une fois.
+
+### Tester sur téléphone (réseau local)
+
+1. Téléphone et PC sur le même Wi-Fi.
+2. Ouvrir l'URL « Network » affichée par Vite, **avec `https://`** (Chrome mobile enlève souvent
+   le `s` ; un `http` donne « ERR_EMPTY_RESPONSE »). Accepter le certificat (« Paramètres avancés »,
+   ou taper `thisisunsafe` sur la page d'erreur Chrome).
+3. Si la page ne charge pas du tout, ouvrir le port dans le pare-feu Windows (PowerShell admin) :
+   `New-NetFirewallRule -DisplayName "Vite dev 5173" -Direction Inbound -Protocol TCP -LocalPort 5173 -Action Allow -Profile Any`
+
+Le téléphone est la cible réelle : grand-angle, et on le pose à hauteur de hanches, écran vers soi.
 
 Le runtime WASM et le modèle `pose_landmarker_lite` sont chargés depuis les CDN officiels au
 premier lancement (≈ 5 Mo, ensuite en cache navigateur).
@@ -50,9 +61,9 @@ src/
               repCounter.ts (machine à états rest → down → up, métriques par rep)
   storage/    db.ts (IndexedDB via idb : séances = métadonnées + frames)
   ui/         live.ts (caméra + squelette + mesures temps réel)
-              replay.ts (timeline scrub / lecture / vitesse / marqueurs de reps / courbe d'angle)
+              replay.ts (timeline scrub / lecture / vitesse / marqueurs de reps / courbe d'angle / vue 3D orbitable)
               gallery.ts (liste des séances locales)
-              skeleton.ts (dessin en bâtons, interpolation entre frames)
+              skeleton.ts (dessin 2D en bâtons, dessin 3D depuis les coordonnées monde ancré aux chevilles, interpolation)
 ```
 
 ## Métriques du squat
