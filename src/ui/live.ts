@@ -10,28 +10,30 @@ import { KNEE_HIGHLIGHT, drawSkeleton } from "./skeleton";
 export function renderLive(root: HTMLElement, exercise: ExerciseDefinition, onSaved: (id: string) => void): () => void {
   root.innerHTML = `
     <section class="live">
-      <div class="stage">
-        <video playsinline muted></video>
-        <canvas></canvas>
-        <div class="status">Chargement du modèle…</div>
-      </div>
-      <aside class="panel">
-        <h2>${exercise.name}</h2>
-        <ul class="instructions">${exercise.instructions.map((i) => `<li>${i}</li>`).join("")}</ul>
-        <div class="metrics">
-          <div class="metric big"><span class="label">Répétitions</span><span class="value" data-m="reps">0</span></div>
-          <div class="metric"><span class="label">Angle genou</span><span class="value" data-m="angle">–</span></div>
-          <div class="metric"><span class="label">Profondeur rep</span><span class="value" data-m="depth">–</span></div>
-          <div class="metric"><span class="label">Meilleure profondeur</span><span class="value" data-m="best">–</span></div>
-          <div class="metric"><span class="label">Asymétrie G/D</span><span class="value" data-m="asym">–</span></div>
+      <video playsinline muted></video>
+      <canvas></canvas>
+      <div class="hud hud-top">
+        <div class="hud-reps"><span class="value" data-m="reps">0</span><span class="label">reps</span></div>
+        <div class="hud-grid">
+          <div class="metric"><span class="label">Genou</span><span class="value" data-m="angle">–</span></div>
+          <div class="metric"><span class="label">Profondeur</span><span class="value" data-m="depth">–</span></div>
+          <div class="metric"><span class="label">Meilleure</span><span class="value" data-m="best">–</span></div>
+          <div class="metric"><span class="label">Asym. G/D</span><span class="value" data-m="asym">–</span></div>
           <div class="metric"><span class="label">Tronc</span><span class="value" data-m="lean">–</span></div>
         </div>
         <div class="warnings" data-m="warnings"></div>
+      </div>
+      <div class="hud hud-bottom">
+        <div class="status">Chargement du modèle…</div>
+        <details class="instructions" open>
+          <summary>Consignes de placement</summary>
+          <ul>${exercise.instructions.map((i) => `<li>${i}</li>`).join("")}</ul>
+        </details>
         <div class="actions">
           <button class="primary" data-a="start" disabled>Démarrer</button>
           <button data-a="stop" disabled>Terminer</button>
         </div>
-      </aside>
+      </div>
     </section>`;
 
   const video = root.querySelector("video")!;
@@ -101,6 +103,7 @@ export function renderLive(root: HTMLElement, exercise: ExerciseDefinition, onSa
     recording = true;
     btnStart.disabled = true;
     btnStop.disabled = false;
+    root.querySelector<HTMLDetailsElement>(".instructions")!.open = false;
     status.textContent = "Enregistrement…";
   };
 
@@ -115,6 +118,7 @@ export function renderLive(root: HTMLElement, exercise: ExerciseDefinition, onSa
       createdAt: Date.now(),
       durationMs: frames.length ? frames[frames.length - 1]!.t : 0,
       frameCount: frames.length,
+      aspectRatio: video.videoWidth && video.videoHeight ? video.videoWidth / video.videoHeight : undefined,
       reps,
       summary: summarize(reps),
       frames,
