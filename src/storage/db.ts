@@ -9,6 +9,8 @@ export interface SessionMeta {
   createdAt: number;
   durationMs: number;
   frameCount: number;
+  /** Format de la vidéo source (largeur / hauteur), pour un replay non déformé. Absent sur les anciennes séances. */
+  aspectRatio?: number;
   reps: Rep[];
   summary: SessionSummary;
 }
