@@ -1,13 +1,25 @@
 import { AngleSmoother, computeAngles } from "../geometry/angles";
-import { CameraPoseSource } from "../pose/mediapipe";
+import { CameraPoseSource, DEFAULT_POSE_MODEL, POSE_MODELS, isPoseModel, type PoseModel } from "../pose/mediapipe";
 import type { Frame } from "../pose/types";
 import type { ExerciseDefinition } from "../scoring/exercise";
 import { RepCounter, summarize, type LiveMetrics } from "../scoring/repCounter";
 import { saveSession, type SessionRecord } from "../storage/db";
 import { KNEE_HIGHLIGHT, drawSkeleton } from "./skeleton";
 
+const MODEL_STORAGE_KEY = "mycoach.poseModel";
+
+function loadPreferredModel(): PoseModel {
+  try {
+    const v = localStorage.getItem(MODEL_STORAGE_KEY);
+    return isPoseModel(v) ? v : DEFAULT_POSE_MODEL;
+  } catch {
+    return DEFAULT_POSE_MODEL;
+  }
+}
+
 /** Écran de séance : caméra + squelette live + mesures. Enregistre les frames et sauvegarde à l'arrêt. */
 export function renderLive(root: HTMLElement, exercise: ExerciseDefinition, onSaved: (id: string) => void): () => void {
+  let model = loadPreferredModel();
   root.innerHTML = `
     <section class="live">
       <video playsinline muted></video>
@@ -25,6 +37,15 @@ export function renderLive(root: HTMLElement, exercise: ExerciseDefinition, onSa
       </div>
       <div class="hud hud-bottom">
         <div class="status">Chargement du modèle…</div>
+        <label class="model-picker">
+          <span>Modèle</span>
+          <select data-a="model">
+            ${(Object.keys(POSE_MODELS) as PoseModel[])
+              .map((k) => `<option value="${k}"${k === model ? " selected" : ""}>${POSE_MODELS[k].label} — ${POSE_MODELS[k].hint}</option>`)
+              .join("")}
+          </select>
+          <span class="fps" data-m="fps"></span>
+        </label>
         <details class="instructions" open>
           <summary>Consignes de placement</summary>
           <ul>${exercise.instructions.map((i) => `<li>${i}</li>`).join("")}</ul>
@@ -43,8 +64,9 @@ export function renderLive(root: HTMLElement, exercise: ExerciseDefinition, onSa
   const m = (k: string) => root.querySelector<HTMLElement>(`[data-m="${k}"]`)!;
   const btnStart = root.querySelector<HTMLButtonElement>('[data-a="start"]')!;
   const btnStop = root.querySelector<HTMLButtonElement>('[data-a="stop"]')!;
+  const selModel = root.querySelector<HTMLSelectElement>('[data-a="model"]')!;
 
-  const source = new CameraPoseSource(video);
+  const source = new CameraPoseSource(video, model);
   const smoother = new AngleSmoother(0.5);
   let counter = new RepCounter(exercise);
   let recording = false;
@@ -69,7 +91,20 @@ export function renderLive(root: HTMLElement, exercise: ExerciseDefinition, onSa
     m("warnings").innerHTML = w.map((x) => `<span class="badge">${x}</span>`).join("");
   }
 
+  // Débit de frames traitées, lissé sur ~1 s : c'est la mesure la plus parlante pour comparer les modèles.
+  let fpsWindowStart = 0;
+  let fpsWindowCount = 0;
+  function trackFps(t: number) {
+    fpsWindowCount++;
+    if (t - fpsWindowStart >= 1000) {
+      m("fps").textContent = `${Math.round((fpsWindowCount * 1000) / (t - fpsWindowStart))} fps`;
+      fpsWindowStart = t;
+      fpsWindowCount = 0;
+    }
+  }
+
   function onFrame(frame: Frame) {
+    trackFps(frame.t);
     if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
@@ -95,8 +130,33 @@ export function renderLive(root: HTMLElement, exercise: ExerciseDefinition, onSa
       status.textContent = `Caméra indisponible : ${err instanceof Error ? err.message : String(err)}`;
     });
 
+  selModel.onchange = async () => {
+    const next = selModel.value;
+    if (!isPoseModel(next) || next === model) return;
+    model = next;
+    try {
+      localStorage.setItem(MODEL_STORAGE_KEY, next);
+    } catch {
+      /* stockage indisponible : le choix vaut pour cette séance seulement */
+    }
+    selModel.disabled = true;
+    btnStart.disabled = true;
+    status.textContent = `Chargement du modèle ${POSE_MODELS[next].label}…`;
+    m("fps").textContent = "";
+    try {
+      await source.setModel(next);
+      status.textContent = "";
+    } catch (err: unknown) {
+      status.textContent = `Modèle ${POSE_MODELS[next].label} indisponible : ${err instanceof Error ? err.message : String(err)}`;
+    } finally {
+      selModel.disabled = false;
+      if (!recording) btnStart.disabled = false;
+    }
+  };
+
   btnStart.onclick = () => {
     frames = [];
+    selModel.disabled = true; // un seul modèle par séance, pour que les mesures restent comparables
     counter = new RepCounter(exercise);
     smoother.reset();
     tRecStart = Number.NaN;
@@ -119,6 +179,7 @@ export function renderLive(root: HTMLElement, exercise: ExerciseDefinition, onSa
       durationMs: frames.length ? frames[frames.length - 1]!.t : 0,
       frameCount: frames.length,
       aspectRatio: video.videoWidth && video.videoHeight ? video.videoWidth / video.videoHeight : undefined,
+      poseModel: model,
       reps,
       summary: summarize(reps),
       frames,

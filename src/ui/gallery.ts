@@ -1,3 +1,4 @@
+import { POSE_MODELS } from "../pose/mediapipe";
 import { EXERCISES } from "../scoring/exercise";
 import { deleteSession, listSessions } from "../storage/db";
 
@@ -22,6 +23,7 @@ export async function renderGallery(root: HTMLElement, onOpen: (id: string) => v
                     <span>prof. <b>${s.summary.bestMinAngle == null ? "–" : Math.round(s.summary.bestMinAngle) + "°"}</b></span>
                     <span>asym. <b>${s.summary.meanAsymmetry == null ? "–" : Math.round(s.summary.meanAsymmetry) + "°"}</b></span>
                     <span>${(s.durationMs / 1000).toFixed(0)} s</span>
+                    <span>modèle <b>${POSE_MODELS[s.poseModel ?? "lite"].label}</b></span>
                   </div>
                   <div class="card-actions">
                     <button class="primary" data-a="open">Replay</button>

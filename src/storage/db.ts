@@ -1,4 +1,5 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
+import type { PoseModel } from "../pose/mediapipe";
 import type { Frame } from "../pose/types";
 import type { Rep, SessionSummary } from "../scoring/repCounter";
 
@@ -11,6 +12,8 @@ export interface SessionMeta {
   frameCount: number;
   /** Format de la vidéo source (largeur / hauteur), pour un replay non déformé. Absent sur les anciennes séances. */
   aspectRatio?: number;
+  /** Variante BlazePose utilisée (lite / full / heavy). Absent sur les anciennes séances (= lite). */
+  poseModel?: PoseModel;
   reps: Rep[];
   summary: SessionSummary;
 }

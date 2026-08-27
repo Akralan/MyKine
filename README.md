@@ -27,7 +27,10 @@ la caméra exige un contexte sécurisé. Accepter l'avertissement du navigateur 
 Le téléphone est la cible réelle : grand-angle, et on le pose à hauteur de hanches, écran vers soi.
 
 Le runtime WASM et le modèle `pose_landmarker_lite` sont chargés depuis les CDN officiels au
-premier lancement (≈ 5 Mo, ensuite en cache navigateur).
+premier lancement (≈ 5 Mo, ensuite en cache navigateur). L'écran séance propose un sélecteur
+Lite / Full / Heavy (mêmes 33 points, précision et coût croissants) avec le débit en fps, pour
+comparer les variantes sur un vrai téléphone ; le choix est mémorisé et enregistré avec chaque
+séance (visible dans la galerie et le replay).
 
 ## Décisions de cadrage prises pour la démo
 

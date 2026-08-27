@@ -4,21 +4,45 @@ import { LANDMARK_COUNT, type Frame, type PoseSource } from "./types";
 // Runtime WASM et modèle chargés depuis les CDN officiels. Pour une version
 // hors-ligne, copier `node_modules/@mediapipe/tasks-vision/wasm` et le .task dans /public.
 const WASM_URL = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm";
-const MODEL_URL =
-  "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task";
 
-let landmarkerPromise: Promise<PoseLandmarker> | null = null;
+/** Les trois variantes de BlazePose : même architecture, mêmes 33 points, précision et coût croissants. */
+export type PoseModel = "lite" | "full" | "heavy";
 
-/** Chargement unique du modèle (≈ 5 Mo, mis en cache par le navigateur). */
-export function loadLandmarker(): Promise<PoseLandmarker> {
-  landmarkerPromise ??= FilesetResolver.forVisionTasks(WASM_URL).then((fileset) =>
-    PoseLandmarker.createFromOptions(fileset, {
-      baseOptions: { modelAssetPath: MODEL_URL, delegate: "GPU" },
-      runningMode: "VIDEO",
-      numPoses: 1,
-    }),
-  );
-  return landmarkerPromise;
+export const POSE_MODELS: Record<PoseModel, { label: string; hint: string }> = {
+  lite: { label: "Lite", hint: "≈ 5 Mo, le plus rapide" },
+  full: { label: "Full", hint: "≈ 9 Mo, meilleur compromis" },
+  heavy: { label: "Heavy", hint: "≈ 30 Mo, le plus précis, lent sur mobile" },
+};
+
+export const DEFAULT_POSE_MODEL: PoseModel = "lite";
+
+export function isPoseModel(v: unknown): v is PoseModel {
+  return typeof v === "string" && v in POSE_MODELS;
+}
+
+function modelUrl(model: PoseModel): string {
+  return `https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_${model}/float16/latest/pose_landmarker_${model}.task`;
+}
+
+let filesetPromise: ReturnType<typeof FilesetResolver.forVisionTasks> | null = null;
+const landmarkers = new Map<PoseModel, Promise<PoseLandmarker>>();
+
+/** Chargement unique par variante (le .task est mis en cache par le navigateur). */
+export function loadLandmarker(model: PoseModel = DEFAULT_POSE_MODEL): Promise<PoseLandmarker> {
+  filesetPromise ??= FilesetResolver.forVisionTasks(WASM_URL);
+  let p = landmarkers.get(model);
+  if (!p) {
+    p = filesetPromise.then((fileset) =>
+      PoseLandmarker.createFromOptions(fileset, {
+        baseOptions: { modelAssetPath: modelUrl(model), delegate: "GPU" },
+        runningMode: "VIDEO",
+        numPoses: 1,
+      }),
+    );
+    p.catch(() => landmarkers.delete(model)); // permettre une nouvelle tentative après un échec réseau
+    landmarkers.set(model, p);
+  }
+  return p;
 }
 
 /**
@@ -27,13 +51,25 @@ export function loadLandmarker(): Promise<PoseLandmarker> {
  */
 export class CameraPoseSource implements PoseSource {
   private stream: MediaStream | null = null;
+  private landmarker: PoseLandmarker | null = null;
   private running = false;
   private rafId = 0;
 
-  constructor(private readonly video: HTMLVideoElement) {}
+  constructor(
+    private readonly video: HTMLVideoElement,
+    private model: PoseModel = DEFAULT_POSE_MODEL,
+  ) {}
+
+  /** Charge une autre variante et bascule dessus ; la caméra continue de tourner pendant le chargement. */
+  async setModel(model: PoseModel): Promise<void> {
+    this.model = model;
+    const lm = await loadLandmarker(model);
+    // Si l'utilisateur a changé d'avis pendant le chargement, ne pas écraser le dernier choix.
+    if (this.model === model) this.landmarker = lm;
+  }
 
   async start(onFrame: (frame: Frame) => void): Promise<void> {
-    const landmarker = await loadLandmarker();
+    this.landmarker = await loadLandmarker(this.model);
     this.stream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
       audio: false,
@@ -48,10 +84,10 @@ export class CameraPoseSource implements PoseSource {
 
     const loop = () => {
       if (!this.running) return;
-      if (this.video.currentTime !== lastVideoTime) {
+      if (this.video.currentTime !== lastVideoTime && this.landmarker) {
         lastVideoTime = this.video.currentTime;
         const now = performance.now();
-        const result = landmarker.detectForVideo(this.video, now);
+        const result = this.landmarker.detectForVideo(this.video, now);
         const norm = result.landmarks[0];
         const world = result.worldLandmarks[0];
         if (norm && world && norm.length === LANDMARK_COUNT) {

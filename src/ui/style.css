@@ -91,6 +91,17 @@ main:has(.live) { padding: 0; max-width: none; }
 }
 .hud .instructions summary { cursor: pointer; color: var(--muted); user-select: none; }
 .hud .instructions ul { margin: 0.4rem 0 0; padding-left: 1.2rem; }
+.hud .model-picker {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.hud .model-picker select { flex: 1; min-width: 0; font-size: 0.85rem; }
+.hud .model-picker .fps { font-variant-numeric: tabular-nums; color: var(--text); min-width: 3.5rem; text-align: right; }
+.replay-head h2 small { color: var(--muted); font-weight: 400; font-size: 0.85rem; }
 .hud .actions { margin-top: 0; }
 .hud .actions button { flex: 1; padding: 0.9rem; font-size: 1.1rem; }
 

@@ -1,4 +1,5 @@
 import { AngleSmoother, computeAngles } from "../geometry/angles";
+import { POSE_MODELS } from "../pose/mediapipe";
 import { EXERCISES } from "../scoring/exercise";
 import { loadSession, type SessionRecord } from "../storage/db";
 import { KNEE_HIGHLIGHT, drawSkeleton, drawSkeleton3D, frameAt, type Orbit } from "./skeleton";
@@ -23,7 +24,7 @@ export async function renderReplay(root: HTMLElement, sessionId: string, onBack:
     <section class="replay">
       <div class="replay-head">
         <button data-a="back">← Galerie</button>
-        <h2>${exercise?.name ?? session.exerciseId} — ${new Date(session.createdAt).toLocaleString("fr-FR")}</h2>
+        <h2>${exercise?.name ?? session.exerciseId} — ${new Date(session.createdAt).toLocaleString("fr-FR")} <small>· modèle ${POSE_MODELS[session.poseModel ?? "lite"].label}</small></h2>
       </div>
       <div class="replay-body">
         <div class="stage dark"><canvas class="skeleton"></canvas></div>

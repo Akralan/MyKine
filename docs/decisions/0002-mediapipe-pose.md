@@ -25,6 +25,9 @@ Les angles sont calculés sur les **coordonnées monde** ; les coordonnées imag
 
 - Runtime WASM et modèle chargés depuis les CDN officiels (≈ 5 Mo) ; à internaliser dans `/public`
   pour une version hors-ligne ou pour maîtriser les versions.
-- Le modèle `full` ou `heavy` peut être substitué sans changement de code si la précision du `lite`
-  s'avère insuffisante sur les genoux au point bas.
+- `lite` reste le défaut, mais les trois variantes (`lite` / `full` / `heavy`, mêmes 33 points) sont
+  sélectionnables depuis l'écran séance, avec le débit en fps, pour trancher sur un vrai téléphone
+  (2026-08-27). La variante utilisée est enregistrée dans chaque séance (`poseModel`) pour que les
+  comparaisons de précision restent interprétables. Ordres de grandeur annoncés par Google : `full`
+  ≈ 1,5–2× plus lent que `lite`, `heavy` ≈ 3–5×.
 - L'abstraction `PoseSource` permet de brancher un autre moteur si besoin, mais rien n'est prévu pour.
