@@ -14,6 +14,18 @@ export interface SessionMeta {
   aspectRatio?: number;
   /** Variante BlazePose utilisée (lite / full / heavy). Absent sur les anciennes séances (= lite). */
   poseModel?: PoseModel;
+  /**
+   * Une entrée = une série. `workoutId` regroupe les séries d'une même séance (plusieurs
+   * exercices, plusieurs séries chacun). Absent sur les séances enregistrées avant le
+   * programme : elles sont alors traitées comme une série isolée.
+   */
+  workoutId?: string;
+  /** Rang de la série dans l'exercice, à partir de 1. */
+  setIndex?: number;
+  /** Nombre de séries prescrites pour cet exercice. */
+  setCount?: number;
+  /** Répétitions prescrites pour cette série. */
+  targetReps?: number;
   reps: Rep[];
   summary: SessionSummary;
 }

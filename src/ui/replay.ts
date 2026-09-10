@@ -1,101 +1,128 @@
 import { AngleSmoother, computeAngles } from "../geometry/angles";
-import { POSE_MODELS } from "../pose/mediapipe";
 import { EXERCISES } from "../scoring/exercise";
-import { loadSession, type SessionRecord } from "../storage/db";
+import { loadSession } from "../storage/db";
+import { clock, deg, el, escapeHtml, mountFullScreen, timeOf } from "./shell";
 import { KNEE_HIGHLIGHT, drawSkeleton, drawSkeleton3D, frameAt, type Orbit } from "./skeleton";
 
 const SPEEDS = [0.25, 0.5, 1, 2];
 
 /**
- * Replay en bâtons avec timeline « façon YouTube » : lecture/pause, scrub, vitesse,
- * marqueurs de reps cliquables, courbe d'angle genou synchronisée.
- * Ne lit que la série temporelle de points — aucune image.
+ * 05 · Replay — squelette en bâtons (2D ou 3D orbitable), timeline scrubbable,
+ * marqueurs de reps et courbe d'angle. Ne lit que la série temporelle de points.
  */
 export async function renderReplay(root: HTMLElement, sessionId: string, onBack: () => void): Promise<() => void> {
   const session = await loadSession(sessionId);
+  const { phone, dispose: disposeShell } = mountFullScreen(root);
   if (!session) {
-    root.innerHTML = `<p>Séance introuvable.</p>`;
-    return () => {};
+    phone.append(el(`<div class="notice">Séance introuvable.</div>`));
+    return disposeShell;
   }
-  const exercise = EXERCISES[session.exerciseId];
-  const { frames, reps, durationMs } = session;
 
-  root.innerHTML = `
-    <section class="replay">
-      <div class="replay-head">
-        <button data-a="back">← Galerie</button>
-        <h2>${exercise?.name ?? session.exerciseId} — ${new Date(session.createdAt).toLocaleString("fr-FR")} <small>· modèle ${POSE_MODELS[session.poseModel ?? "lite"].label}</small></h2>
-      </div>
-      <div class="replay-body">
-        <div class="stage dark"><canvas class="skeleton"></canvas></div>
-        <aside class="panel">
-          ${summaryHtml(session)}
-          <h3>Répétitions</h3>
-          <ol class="reps">
-            ${reps
-              .map(
-                (r) => `<li data-rep="${r.index}" class="${r.complete ? "" : "incomplete"}">
-                  <b>#${r.index}</b> profondeur ${Math.round(r.minAngle)}°
-                  · asym. ${Math.round(r.asymmetryAtBottom)}°
-                  · tronc ${Math.round(r.maxTrunkLean)}°
-                  · ${((r.tEnd - r.tStart) / 1000).toFixed(1)}s
-                  ${r.complete ? "" : '<span class="badge">incomplète</span>'}
-                </li>`,
-              )
-              .join("")}
-          </ol>
-        </aside>
-      </div>
-      <div class="timeline">
-        <div class="controls">
-          <button data-a="play" title="Espace">▶</button>
-          <span class="time"><span data-t="cur">0.0</span> / ${(durationMs / 1000).toFixed(1)} s</span>
-          <select data-a="speed">${SPEEDS.map((s) => `<option value="${s}" ${s === 1 ? "selected" : ""}>${s}×</option>`).join("")}</select>
-          <button data-a="view3d" title="Vue 3D — glisser pour tourner">3D</button>
-        </div>
-        <div class="track">
-          <canvas class="curve"></canvas>
-          <input type="range" min="0" max="${durationMs}" step="1" value="0" />
-          <div class="markers">
-            ${reps
-              .map(
-                (r) =>
-                  `<span class="marker ${r.complete ? "" : "incomplete"}" data-rep="${r.index}"
-                    style="left:${(r.tStart / durationMs) * 100}%;width:${((r.tEnd - r.tStart) / durationMs) * 100}%" title="Rep ${r.index}"></span>`,
-              )
-              .join("")}
+  const def = EXERCISES[session.exerciseId];
+  const { frames, reps, durationMs } = session;
+  const total = Math.max(1, durationMs);
+  const setLabel = session.setCount && session.setCount > 1 ? ` · série ${session.setIndex}/${session.setCount}` : "";
+
+  const screen = el(`
+    <div class="screen">
+      <div class="scroll">
+        <div class="replay-head">
+          <button class="replay-back" aria-label="Retour">←</button>
+          <div>
+            <div class="t">Replay · ${escapeHtml(def?.name ?? session.exerciseId)}</div>
+            <div class="s">${new Date(session.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })} ${timeOf(session.createdAt)} · ${clock(durationMs)}${setLabel}</div>
           </div>
         </div>
+
+        <div class="stage">
+          <canvas class="skeleton"></canvas>
+          <div class="stage-tag" data-m="tag">—</div>
+          <div class="stage-views">
+            <button data-view="2d" class="on">2D</button>
+            <button data-view="3d">3D</button>
+          </div>
+        </div>
+
+        <div class="transport">
+          <div class="transport-row">
+            <button class="play">▶</button>
+            <span class="time"><span data-m="cur">0:00</span> / ${clock(durationMs)}</span>
+            <div class="speeds">
+              ${SPEEDS.map((s) => `<button data-speed="${s}" class="${s === 1 ? "on" : ""}">${s}×</button>`).join("")}
+            </div>
+          </div>
+          <div class="track">
+            <canvas class="curve"></canvas>
+            ${frames.length < 2 ? `<div class="hint">courbe d'angle indisponible</div>` : ""}
+            <div class="markers">
+              ${reps
+                .map(
+                  (r) =>
+                    `<i data-rep="${r.index}" class="${r.complete ? "" : "miss"}" style="left:${(r.tStart / total) * 100}%;width:${Math.max(1.5, ((r.tEnd - r.tStart) / total) * 100)}%"></i>`,
+                )
+                .join("")}
+            </div>
+            <div class="playhead" style="left:0%"></div>
+          </div>
+        </div>
+
+        <div class="reps-list">
+          <div class="t">Répétitions</div>
+          ${reps.length === 0 ? `<div class="empty-note">Aucune répétition détectée sur cette série.</div>` : ""}
+          <ol>
+            ${
+              reps.length === 0
+                ? ""
+                : reps
+                    .map(
+                      (r) => `<li data-rep="${r.index}">
+                        <span class="n">#${r.index}</span>
+                        <span class="d">${deg(r.minAngle)}</span>
+                        <span class="m">${[
+                          def?.asymmetryWarnDeg == null ? "" : `asym. ${deg(r.asymmetryAtBottom)}`,
+                          def?.trunkLeanWarnDeg == null ? "" : `tronc ${deg(r.maxTrunkLean)}`,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}</span>
+                        <span class="tag${r.complete ? "" : " miss"}">${r.complete ? "complète" : "incomplète"}</span>
+                      </li>`,
+                    )
+                    .join("")
+            }
+          </ol>
+        </div>
       </div>
-    </section>`;
+    </div>`);
+  phone.append(screen);
 
-  const skel = root.querySelector<HTMLCanvasElement>("canvas.skeleton")!;
+  const skel = screen.querySelector<HTMLCanvasElement>("canvas.skeleton")!;
   const sctx = skel.getContext("2d")!;
-  const curve = root.querySelector<HTMLCanvasElement>("canvas.curve")!;
-  const range = root.querySelector<HTMLInputElement>("input[type=range]")!;
-  const btnPlay = root.querySelector<HTMLButtonElement>('[data-a="play"]')!;
-  const speedSel = root.querySelector<HTMLSelectElement>('[data-a="speed"]')!;
-  const curLabel = root.querySelector<HTMLElement>('[data-t="cur"]')!;
+  const curve = screen.querySelector<HTMLCanvasElement>("canvas.curve")!;
+  const track = screen.querySelector<HTMLElement>(".track")!;
+  const playhead = screen.querySelector<HTMLElement>(".playhead")!;
+  const btnPlay = screen.querySelector<HTMLButtonElement>(".play")!;
+  const tag = screen.querySelector<HTMLElement>('[data-m="tag"]')!;
+  const cur = screen.querySelector<HTMLElement>('[data-m="cur"]')!;
 
-  // Courbe d'angle genou précalculée avec le même lissage que le live.
+  // Courbe d'angle pilote précalculée avec le même lissage que le live.
   const smoother = new AngleSmoother(0.5);
   const angleSeries = frames.map((f) => {
     const a = smoother.next(computeAngles(f));
-    return (a.kneeL + a.kneeR) / 2;
+    if (!def) return NaN;
+    const l = a[def.primaryAngle.left], r = a[def.primaryAngle.right];
+    return Number.isNaN(l) ? r : Number.isNaN(r) ? l : (l + r) / 2;
   });
 
   let t = 0;
   let view3d = false;
-  const orbit: Orbit = { yaw: Math.PI, pitch: 0 }; // vue initiale : face au patient (miroir)
+  const orbit: Orbit = { yaw: Math.PI, pitch: 0 }; // vue initiale : face au patient
   let playing = false;
   let speed = 1;
   let rafId = 0;
   let lastTick = 0;
-
   const aspect = session.aspectRatio ?? 16 / 9;
 
   function resize() {
-    // Le canvas prend le plus grand rectangle au format de la vidéo source qui tient dans la scène.
     const stage = skel.parentElement!;
     const sw = stage.clientWidth, sh = stage.clientHeight;
     const w = Math.round(Math.min(sw, sh * aspect));
@@ -106,7 +133,7 @@ export async function renderReplay(root: HTMLElement, sessionId: string, onBack:
       skel.style.width = `${w}px`;
       skel.style.height = `${h}px`;
     }
-    const cw = curve.clientWidth, ch = curve.clientHeight;
+    const cw = track.clientWidth, ch = track.clientHeight;
     if (curve.width !== cw || curve.height !== ch) {
       curve.width = cw;
       curve.height = ch;
@@ -118,25 +145,34 @@ export async function renderReplay(root: HTMLElement, sessionId: string, onBack:
     const c = curve.getContext("2d")!;
     const { width: w, height: h } = curve;
     c.clearRect(0, 0, w, h);
-    if (!exercise || frames.length < 2) return;
-    const yOf = (deg: number) => h - ((deg - 40) / (180 - 40)) * h;
-    // Repères : seuil de repos et cible
-    c.strokeStyle = "rgba(255,255,255,0.15)";
+    if (!def || frames.length < 2) return;
+    const pad = 10;
+    const yOf = (v: number) => h - pad - ((v - 40) / (180 - 40)) * (h - pad * 2);
+    c.strokeStyle = "rgba(11,31,29,0.12)";
+    c.lineWidth = 1;
     c.setLineDash([4, 4]);
-    for (const th of [exercise.thresholds.rest, exercise.thresholds.target]) {
+    for (const th of [def.thresholds.rest, def.thresholds.target]) {
       c.beginPath();
       c.moveTo(0, yOf(th));
       c.lineTo(w, yOf(th));
       c.stroke();
     }
     c.setLineDash([]);
-    c.strokeStyle = "#f97316";
+    c.strokeStyle = "#0d9488";
     c.lineWidth = 1.5;
+    c.lineJoin = "round";
     c.beginPath();
+    let started = false;
     frames.forEach((f, i) => {
-      const x = (f.t / durationMs) * w;
-      const y = yOf(angleSeries[i]!);
-      i === 0 ? c.moveTo(x, y) : c.lineTo(x, y);
+      const v = angleSeries[i]!;
+      if (Number.isNaN(v)) return;
+      const x = (f.t / total) * w;
+      const y = yOf(v);
+      if (started) c.lineTo(x, y);
+      else {
+        c.moveTo(x, y);
+        started = true;
+      }
     });
     c.stroke();
   }
@@ -149,16 +185,28 @@ export async function renderReplay(root: HTMLElement, sessionId: string, onBack:
       if (view3d) drawSkeleton3D(sctx, f, orbit, { highlight: KNEE_HIGHLIGHT });
       else drawSkeleton(sctx, f, { mirror: true, highlight: KNEE_HIGHLIGHT });
     }
-    range.value = String(t);
-    curLabel.textContent = (t / 1000).toFixed(1);
+    cur.textContent = clock(t);
+    playhead.style.left = `${(t / total) * 100}%`;
+
     const active = reps.find((r) => t >= r.tStart && t <= r.tEnd);
-    root.querySelectorAll<HTMLElement>("li[data-rep]").forEach((li) => {
+    tag.textContent = active ? `Rep ${active.index} · ${deg(active.minAngle)}` : deg(angleAt(t));
+    screen.querySelectorAll<HTMLElement>("li[data-rep]").forEach((li) => {
       li.classList.toggle("active", active?.index === Number(li.dataset.rep));
+    });
+    screen.querySelectorAll<HTMLElement>(".markers i").forEach((i) => {
+      i.classList.toggle("on", active?.index === Number(i.dataset.rep));
     });
   }
 
+  function angleAt(ms: number): number {
+    if (frames.length === 0) return NaN;
+    let lo = 0;
+    for (let i = 0; i < frames.length; i++) if (frames[i]!.t <= ms) lo = i;
+    return angleSeries[lo] ?? NaN;
+  }
+
   function seek(ms: number) {
-    t = Math.max(0, Math.min(durationMs, ms));
+    t = Math.max(0, Math.min(total, ms));
     draw();
   }
 
@@ -167,8 +215,8 @@ export async function renderReplay(root: HTMLElement, sessionId: string, onBack:
     const dt = lastTick ? now - lastTick : 0;
     lastTick = now;
     t += dt * speed;
-    if (t >= durationMs) {
-      t = durationMs;
+    if (t >= total) {
+      t = total;
       setPlaying(false);
     }
     draw();
@@ -179,7 +227,7 @@ export async function renderReplay(root: HTMLElement, sessionId: string, onBack:
     playing = p;
     btnPlay.textContent = p ? "⏸" : "▶";
     if (p) {
-      if (t >= durationMs) t = 0;
+      if (t >= total) t = 0;
       lastTick = 0;
       rafId = requestAnimationFrame(tick);
     } else {
@@ -187,14 +235,32 @@ export async function renderReplay(root: HTMLElement, sessionId: string, onBack:
     }
   }
 
-  // Vue 3D : bascule + orbite au glisser (souris ou doigt)
-  const btn3d = root.querySelector<HTMLButtonElement>('[data-a="view3d"]')!;
-  btn3d.onclick = () => {
-    view3d = !view3d;
-    btn3d.classList.toggle("active", view3d);
-    skel.classList.toggle("orbit", view3d);
-    draw();
+  // Scrub : la piste elle-même est la barre de lecture (pas d'input range dans la maquette).
+  let scrubbing = false;
+  const scrubTo = (clientX: number) => {
+    const rect = track.getBoundingClientRect();
+    seek(((clientX - rect.left) / rect.width) * total);
   };
+  track.addEventListener("pointerdown", (e) => {
+    scrubbing = true;
+    track.setPointerCapture(e.pointerId);
+    scrubTo(e.clientX);
+  });
+  track.addEventListener("pointermove", (e) => scrubbing && scrubTo(e.clientX));
+  const endScrub = () => (scrubbing = false);
+  track.addEventListener("pointerup", endScrub);
+  track.addEventListener("pointercancel", endScrub);
+
+  screen.querySelectorAll<HTMLButtonElement>("[data-view]").forEach((b) => {
+    b.onclick = () => {
+      view3d = b.dataset.view === "3d";
+      screen.querySelectorAll("[data-view]").forEach((x) => x.classList.toggle("on", x === b));
+      skel.classList.toggle("orbit", view3d);
+      draw();
+    };
+  });
+
+  // Orbite au glisser en vue 3D
   let drag: { x: number; y: number } | null = null;
   skel.addEventListener("pointerdown", (e) => {
     if (!view3d) return;
@@ -213,18 +279,22 @@ export async function renderReplay(root: HTMLElement, sessionId: string, onBack:
   skel.addEventListener("pointercancel", endDrag);
 
   btnPlay.onclick = () => setPlaying(!playing);
-  speedSel.onchange = () => (speed = Number(speedSel.value));
-  range.oninput = () => seek(Number(range.value));
-  root.querySelectorAll<HTMLElement>("[data-rep]").forEach((el) => {
-    el.addEventListener("click", () => {
-      const r = reps.find((x) => x.index === Number(el.dataset.rep));
+  screen.querySelectorAll<HTMLButtonElement>("[data-speed]").forEach((b) => {
+    b.onclick = () => {
+      speed = Number(b.dataset.speed);
+      screen.querySelectorAll("[data-speed]").forEach((x) => x.classList.toggle("on", x === b));
+    };
+  });
+  screen.querySelectorAll<HTMLElement>("li[data-rep], .markers i").forEach((node) => {
+    node.addEventListener("click", () => {
+      const r = reps.find((x) => x.index === Number(node.dataset.rep));
       if (r) seek(r.tStart);
     });
   });
-  root.querySelector<HTMLButtonElement>('[data-a="back"]')!.onclick = onBack;
+  screen.querySelector<HTMLButtonElement>(".replay-back")!.onclick = onBack;
 
   const onKey = (e: KeyboardEvent) => {
-    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) return;
+    if (e.target instanceof HTMLInputElement) return;
     if (e.code === "Space") {
       e.preventDefault();
       setPlaying(!playing);
@@ -233,27 +303,12 @@ export async function renderReplay(root: HTMLElement, sessionId: string, onBack:
   };
   window.addEventListener("keydown", onKey);
   window.addEventListener("resize", draw);
-
-  draw();
+  requestAnimationFrame(draw); // après la première mise en page, pour connaître la taille de la scène
 
   return () => {
     setPlaying(false);
     window.removeEventListener("keydown", onKey);
     window.removeEventListener("resize", draw);
+    disposeShell();
   };
-}
-
-export function summaryHtml(s: SessionRecord | { summary: SessionRecord["summary"]; durationMs: number }): string {
-  const { summary } = s;
-  const deg = (v: number | null) => (v == null ? "–" : `${Math.round(v)}°`);
-  return `
-    <div class="metrics">
-      <div class="metric big"><span class="label">Répétitions</span><span class="value">${summary.repsTotal}${
-        summary.repsTotal !== summary.repsComplete ? ` <small>(${summary.repsComplete} complètes)</small>` : ""
-      }</span></div>
-      <div class="metric"><span class="label">Meilleure profondeur</span><span class="value">${deg(summary.bestMinAngle)}</span></div>
-      <div class="metric"><span class="label">Asymétrie moyenne</span><span class="value">${deg(summary.meanAsymmetry)}</span></div>
-      <div class="metric"><span class="label">Tronc max</span><span class="value">${deg(summary.maxTrunkLean)}</span></div>
-      <div class="metric"><span class="label">Durée</span><span class="value">${(s.durationMs / 1000).toFixed(0)} s</span></div>
-    </div>`;
 }

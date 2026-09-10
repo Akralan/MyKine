@@ -30,6 +30,12 @@ export interface JointAngles {
   kneeR: number;
   hipL: number;
   hipR: number;
+  /** Ouverture bras/tronc (coude → épaule → hanche) : 0° bras le long du corps, 180° bras levé. */
+  shoulderL: number;
+  shoulderR: number;
+  /** Angle de cheville (genou → cheville → pointe de pied). */
+  ankleL: number;
+  ankleR: number;
   /** Inclinaison du tronc (hanches → épaules) par rapport à la verticale. */
   trunkLean: number;
 }
@@ -42,12 +48,18 @@ export function computeAngles(frame: Frame): JointAngles {
   const hipL = p(LM.LEFT_HIP), hipR = p(LM.RIGHT_HIP);
   const kneeL = p(LM.LEFT_KNEE), kneeR = p(LM.RIGHT_KNEE);
   const ankL = p(LM.LEFT_ANKLE), ankR = p(LM.RIGHT_ANKLE);
+  const elbL = p(LM.LEFT_ELBOW), elbR = p(LM.RIGHT_ELBOW);
+  const toeL = p(LM.LEFT_FOOT_INDEX), toeR = p(LM.RIGHT_FOOT_INDEX);
 
   return {
     kneeL: jointAngle(hipL, kneeL, ankL),
     kneeR: jointAngle(hipR, kneeR, ankR),
     hipL: jointAngle(shL, hipL, kneeL),
     hipR: jointAngle(shR, hipR, kneeR),
+    shoulderL: jointAngle(elbL, shL, hipL),
+    shoulderR: jointAngle(elbR, shR, hipR),
+    ankleL: jointAngle(kneeL, ankL, toeL),
+    ankleR: jointAngle(kneeR, ankR, toeR),
     trunkLean: leanFromVertical(mid(hipL, hipR), mid(shL, shR)),
   };
 }

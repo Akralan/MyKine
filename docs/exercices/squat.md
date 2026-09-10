@@ -10,14 +10,17 @@
 
 ## Paramètres
 
+Valeurs en **angle intérieur** : `angle intérieur = 180° − flexion clinique`. Voir la convention
+dans le [README](README.md#convention-dangle--à-lire-avant-de-toucher-à-un-seuil).
+
 | Paramètre | Valeur initiale | Justification | À valider par |
 |---|---|---|---|
-| Angle pilote | genou (moyenne G/D) | Signal le plus ample et le plus lisible du mouvement | — |
+| Angle pilote | genou (moyenne G/D) | Signal le plus ample et le plus lisible du mouvement. Exercice bilatéral : la moyenne est plus robuste au bruit d'un côté mal vu | — |
 | `rest` | 160° | Debout, le genou est rarement à 180° en pose estimation ; marge pour démarrer la rep sans faux départ | Test réel |
-| `target` | 100° | Correspond à un squat « genoux à ~90° » avec la marge du modèle | Kiné |
+| `target` | 100° (= 80° de flexion clinique) | Correspond à un squat « genoux à ~90° » avec la marge du modèle. Repère : le pic mesuré sur squat unipodal chez l'adulte sain est de 86,7° ± 9,9° de flexion, soit 93° intérieur ([PMC4641539](https://pmc.ncbi.nlm.nih.gov/articles/PMC4641539/)) | Kiné |
 | `minRepDurationMs` | 600 ms | Un squat plus court est un rebond de signal | Test réel |
-| `asymmetryWarnDeg` | 12° | Ordre de grandeur, aucune base clinique encore | Kiné |
-| `trunkLeanWarnDeg` | 45° | Ordre de grandeur, aucune base clinique encore | Kiné |
+| `asymmetryWarnDeg` | 12° | Ordre de grandeur, **aucune base clinique** | Kiné |
+| `trunkLeanWarnDeg` | 45° | Ordre de grandeur, **aucune base clinique** | Kiné |
 
 ## Compensations couvertes / non couvertes
 

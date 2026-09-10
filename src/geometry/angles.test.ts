@@ -28,7 +28,10 @@ describe("leanFromVertical", () => {
 });
 
 describe("AngleSmoother", () => {
-  const base = { kneeL: 100, kneeR: 100, hipL: 100, hipR: 100, trunkLean: 10 };
+  const base = {
+    kneeL: 100, kneeR: 100, hipL: 100, hipR: 100,
+    shoulderL: 20, shoulderR: 20, ankleL: 95, ankleR: 95, trunkLean: 10,
+  };
   it("renvoie la première valeur telle quelle", () => {
     expect(new AngleSmoother(0.5).next(base)).toEqual(base);
   });

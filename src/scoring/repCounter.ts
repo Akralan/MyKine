@@ -1,14 +1,18 @@
 import type { JointAngles } from "../geometry/angles";
-import type { ExerciseDefinition } from "./exercise";
+import { directionSign, type ExerciseDefinition } from "./exercise";
 
 /** Résumé d'une répétition terminée. */
 export interface Rep {
   index: number;
   tStart: number;
   tEnd: number;
-  /** Angle pilote minimal atteint (plus petit = plus profond). */
+  /**
+   * Angle pilote extrême atteint, dans le sens du mouvement : le minimum pour une flexion
+   * (squat), le maximum pour une extension (pont fessier). Nom historique conservé pour
+   * rester compatible avec les séances déjà enregistrées.
+   */
   minAngle: number;
-  /** Écart |gauche − droite| de l'angle pilote au point bas. */
+  /** Écart |gauche − droite| de l'angle pilote au point extrême. */
   asymmetryAtBottom: number;
   /** Inclinaison maximale du tronc pendant la rep. */
   maxTrunkLean: number;
@@ -24,7 +28,7 @@ export interface LiveMetrics {
   primaryAngle: number;
   asymmetry: number;
   trunkLean: number;
-  /** Profondeur atteinte sur la rep en cours (angle min). */
+  /** Amplitude atteinte sur la rep en cours (angle extrême). */
   currentMinAngle: number | null;
   reps: Rep[];
   warnings: { asymmetry: boolean; trunkLean: boolean };
@@ -32,56 +36,76 @@ export interface LiveMetrics {
 
 /**
  * Machine à états déterministe : rest → down → up → rest.
- * Une rep est comptée quand l'angle pilote redépasse `rest` après être passé sous `target`.
- * Une descente qui ne va pas jusqu'à `target` est une rep incomplète (comptée à part).
+ * Une rep est comptée quand l'angle pilote revient au repos après s'en être éloigné ;
+ * elle est complète si l'amplitude cible a été franchie.
+ *
+ * Les exercices en extension (l'angle monte pendant l'effort) sont traités en changeant
+ * le signe de l'angle pilote et des seuils : la machine à états ci-dessous ne connaît
+ * qu'un seul cas, « l'angle descend puis remonte ».
  */
 export class RepCounter {
+  private readonly sign: 1 | -1;
   private phase: Phase = "rest";
   private tStart = 0;
-  private minAngle = Infinity;
+  /** Extremum en espace transformé (toujours un minimum). */
+  private minX = Infinity;
   private asymAtMin = 0;
   private maxLean = 0;
   private reps: Rep[] = [];
 
-  constructor(private readonly def: ExerciseDefinition) {}
+  constructor(private readonly def: ExerciseDefinition) {
+    this.sign = directionSign(def);
+  }
 
   update(t: number, a: JointAngles): LiveMetrics {
     const { left, right } = this.def.primaryAngle;
     const l = a[left], r = a[right];
-    const primary = Number.isNaN(l) ? r : Number.isNaN(r) ? l : (l + r) / 2;
+    const s = this.sign;
+    // Sur un mouvement unilatéral (fente), moyenner les deux côtés dilue le côté qui
+    // travaille : on suit le plus engagé dans le sens du mouvement. Sur un mouvement
+    // bilatéral, la moyenne reste plus robuste au bruit d'un côté mal vu.
+    const primary = Number.isNaN(l)
+      ? r
+      : Number.isNaN(r)
+        ? l
+        : this.def.unilateral
+          ? (s === 1 ? Math.min(l, r) : Math.max(l, r))
+          : (l + r) / 2;
     const asym = Number.isNaN(l) || Number.isNaN(r) ? 0 : Math.abs(l - r);
     const lean = Number.isNaN(a.trunkLean) ? 0 : a.trunkLean;
-    const { rest, target } = this.def.thresholds;
+    const rest = s * this.def.thresholds.rest;
+    const target = s * this.def.thresholds.target;
+    const x = s * primary;
 
     if (!Number.isNaN(primary)) {
       switch (this.phase) {
         case "rest":
-          if (primary < rest) {
+          if (x < rest) {
             this.phase = "down";
             this.tStart = t;
-            this.minAngle = primary;
+            this.minX = x;
             this.asymAtMin = asym;
             this.maxLean = lean;
           }
           break;
         case "down":
-          if (primary < this.minAngle) {
-            this.minAngle = primary;
+          if (x < this.minX) {
+            this.minX = x;
             this.asymAtMin = asym;
           }
           this.maxLean = Math.max(this.maxLean, lean);
-          // On considère la remontée entamée dès qu'on s'éloigne nettement du point bas.
-          if (primary > this.minAngle + 10) this.phase = "up";
+          // On considère le retour entamé dès qu'on s'éloigne nettement du point extrême.
+          if (x > this.minX + 10) this.phase = "up";
           break;
         case "up":
           this.maxLean = Math.max(this.maxLean, lean);
-          if (primary < this.minAngle) {
-            // Re-descente sans être repassé par le repos : on reste sur la même rep.
+          if (x < this.minX) {
+            // Nouvel effort sans être repassé par le repos : on reste sur la même rep.
             this.phase = "down";
-            this.minAngle = primary;
+            this.minX = x;
             this.asymAtMin = asym;
-          } else if (primary >= rest) {
-            this.finishRep(t);
+          } else if (x >= rest) {
+            this.finishRep(t, target);
           }
           break;
       }
@@ -92,16 +116,19 @@ export class RepCounter {
       primaryAngle: primary,
       asymmetry: asym,
       trunkLean: lean,
-      currentMinAngle: this.phase === "rest" ? null : this.minAngle,
+      currentMinAngle: this.phase === "rest" ? null : s * this.minX,
       reps: this.reps,
       warnings: {
-        asymmetry: this.phase !== "rest" && asym > this.def.asymmetryWarnDeg,
-        trunkLean: lean > this.def.trunkLeanWarnDeg,
+        // Un seuil absent veut dire « cette mesure n'a pas de sens pour cet exercice » :
+        // on n'alerte pas, et l'UI n'affiche pas la tuile correspondante.
+        asymmetry:
+          this.def.asymmetryWarnDeg != null && this.phase !== "rest" && asym > this.def.asymmetryWarnDeg,
+        trunkLean: this.def.trunkLeanWarnDeg != null && lean > this.def.trunkLeanWarnDeg,
       },
     };
   }
 
-  private finishRep(t: number): void {
+  private finishRep(t: number, target: number): void {
     const duration = t - this.tStart;
     this.phase = "rest";
     if (duration < this.def.minRepDurationMs) return; // rebond du signal, pas une rep
@@ -109,10 +136,10 @@ export class RepCounter {
       index: this.reps.length + 1,
       tStart: this.tStart,
       tEnd: t,
-      minAngle: this.minAngle,
+      minAngle: this.sign * this.minX,
       asymmetryAtBottom: this.asymAtMin,
       maxTrunkLean: this.maxLean,
-      complete: this.minAngle <= this.def.thresholds.target,
+      complete: this.minX <= target,
     });
   }
 
@@ -125,21 +152,45 @@ export class RepCounter {
 export interface SessionSummary {
   repsTotal: number;
   repsComplete: number;
-  /** Meilleure profondeur (angle min) sur la séance. */
+  /** Meilleure amplitude atteinte sur la séance (angle extrême le plus favorable). */
   bestMinAngle: number | null;
   meanAsymmetry: number | null;
   maxTrunkLean: number | null;
 }
 
-export function summarize(reps: Rep[]): SessionSummary {
+/**
+ * `def` sert uniquement à savoir dans quel sens « meilleur » se lit. Sans lui, on
+ * suppose une flexion (le cas du squat), ce qui garde le comportement historique.
+ */
+export function summarize(reps: Rep[], def?: ExerciseDefinition): SessionSummary {
   if (reps.length === 0) {
     return { repsTotal: 0, repsComplete: 0, bestMinAngle: null, meanAsymmetry: null, maxTrunkLean: null };
   }
+  const extremes = reps.map((r) => r.minAngle);
   return {
     repsTotal: reps.length,
     repsComplete: reps.filter((r) => r.complete).length,
-    bestMinAngle: Math.min(...reps.map((r) => r.minAngle)),
+    bestMinAngle: def && def.direction === "extension" ? Math.max(...extremes) : Math.min(...extremes),
     meanAsymmetry: reps.reduce((s, r) => s + r.asymmetryAtBottom, 0) / reps.length,
     maxTrunkLean: Math.max(...reps.map((r) => r.maxTrunkLean)),
+  };
+}
+
+/** Fusionne les résumés de plusieurs séries en un résumé d'exercice. */
+export function mergeSummaries(parts: SessionSummary[], def?: ExerciseDefinition): SessionSummary {
+  const kept = parts.filter((p) => p.repsTotal > 0);
+  if (kept.length === 0) {
+    return { repsTotal: 0, repsComplete: 0, bestMinAngle: null, meanAsymmetry: null, maxTrunkLean: null };
+  }
+  const bests = kept.map((p) => p.bestMinAngle).filter((v): v is number => v != null);
+  const asyms = kept.filter((p) => p.meanAsymmetry != null);
+  const leans = kept.map((p) => p.maxTrunkLean).filter((v): v is number => v != null);
+  const total = kept.reduce((s, p) => s + p.repsTotal, 0);
+  return {
+    repsTotal: total,
+    repsComplete: kept.reduce((s, p) => s + p.repsComplete, 0),
+    bestMinAngle: bests.length === 0 ? null : def && def.direction === "extension" ? Math.max(...bests) : Math.min(...bests),
+    meanAsymmetry: asyms.length === 0 ? null : asyms.reduce((s, p) => s + p.meanAsymmetry! * p.repsTotal, 0) / total,
+    maxTrunkLean: leans.length === 0 ? null : Math.max(...leans),
   };
 }

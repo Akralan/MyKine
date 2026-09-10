@@ -14,7 +14,7 @@ export interface SkeletonStyle {
  */
 export function drawSkeleton(ctx: CanvasRenderingContext2D, frame: Frame, style: SkeletonStyle = {}): void {
   const { width: w, height: h } = ctx.canvas;
-  const color = style.color ?? "#4ade80";
+  const color = style.color ?? "#2dd4bf";
   const px = (i: number) => {
     const p = normPoint(frame, i);
     return { x: (style.mirror ? 1 - p.x : p.x) * w, y: p.y * h, v: p.visibility };
@@ -57,7 +57,7 @@ export interface Orbit {
  */
 export function drawSkeleton3D(ctx: CanvasRenderingContext2D, frame: Frame, orbit: Orbit, style: SkeletonStyle = {}): void {
   const { width: w, height: h } = ctx.canvas;
-  const color = style.color ?? "#4ade80";
+  const color = style.color ?? "#2dd4bf";
   const scale = h / 2.2; // ≈ 2,2 m de hauteur visible
   const cx = w / 2, cy = h / 2;
   const cosY = Math.cos(orbit.yaw), sinY = Math.sin(orbit.yaw);
@@ -122,9 +122,10 @@ export function drawSkeleton3D(ctx: CanvasRenderingContext2D, frame: Frame, orbi
   }
 }
 
+/** Genoux surlignés : repères de latéralité, dans la palette du design system. */
 export const KNEE_HIGHLIGHT = new Map<number, string>([
-  [LM.LEFT_KNEE, "#f97316"],
-  [LM.RIGHT_KNEE, "#38bdf8"],
+  [LM.LEFT_KNEE, "#fdba74"],
+  [LM.RIGHT_KNEE, "#ffffff"],
 ]);
 
 /** Interpole deux frames pour un scrub fluide entre deux échantillons. */

@@ -11,6 +11,7 @@ Une décision n'est jamais modifiée après coup — on en écrit une nouvelle q
 | [0004](0004-mesures-sans-consigne-corrective.md) | La démo affiche des mesures, pas de consigne corrective | Acceptée | 2026-08-26 |
 | [0005](0005-stockage-indexeddb-sans-image.md) | Stockage local IndexedDB, série de points uniquement | Acceptée | 2026-08-26 |
 | [0006](0006-squat-premier-exercice.md) | Le squat comme premier exercice | Acceptée | 2026-08-26 |
+| [0007](0007-programme-prescrit-code-en-dur.md) | Le programme prescrit est codé en dur pour la démo | Acceptée | 2026-09-10 |
 
 ## Décisions à prendre (issues du cadrage)
 
