@@ -9,7 +9,11 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "start": "node server.mjs"
+  },
+  "engines": {
+    "node": "24.x"
   },
   "devDependencies": {
     "@vitejs/plugin-basic-ssl": "^2.3.0",
