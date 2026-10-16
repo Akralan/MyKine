@@ -15,6 +15,9 @@ npm test         # tests unitaires (angles, compteur de reps)
 npm run build
 ```
 
+La landing (`landing/index.html`, style Physitrack) est servie sous `/landing/` en dev comme en prod ;
+la démo reste à la racine.
+
 Le serveur de dev est en HTTPS (certificat auto-signé via `@vitejs/plugin-basic-ssl`) parce que
 la caméra exige un contexte sécurisé. Accepter l'avertissement du navigateur une fois.
 

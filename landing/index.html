@@ -1,0 +1,514 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#002a2c" />
+    <title>MyCoach — Suivi objectif des exercices de rééducation à domicile</title>
+    <meta
+      name="description"
+      content="MyCoach suit les exercices de kinésithérapie à domicile avec la caméra du téléphone : répétitions, amplitude, compensations. Aucune image stockée, tout tourne sur le téléphone."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./landing.css" />
+  </head>
+  <body>
+    <!-- Bandeau -->
+    <div class="banner">
+      <div class="wrap banner-in">
+        <span class="banner-tag">Démo</span>
+        <span class="banner-text">Nous cherchons deux ou trois kinés partenaires de design pour définir la bibliothèque d'exercices.</span>
+        <a class="banner-link" href="#partenaires">Devenir partenaire →</a>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <header class="nav">
+      <div class="wrap nav-in">
+        <a class="brand" href="#top" aria-label="MyCoach, accueil">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-name">MyCoach</span>
+          <span class="brand-by">par MyTwin</span>
+        </a>
+        <nav class="nav-links" aria-label="Sections">
+          <a href="#comment">Comment ça marche</a>
+          <a href="#exercices">Exercices</a>
+          <a href="#kines">Pour les kinés</a>
+          <a href="#faq">FAQ</a>
+        </nav>
+        <div class="nav-cta">
+          <a class="btn btn-ghost" href="#partenaires">Nous contacter</a>
+          <a class="btn btn-lime" href="/">Essayer la démo</a>
+        </div>
+      </div>
+    </header>
+
+    <main id="top">
+      <!-- Hero -->
+      <section class="hero">
+        <div class="wrap hero-in">
+          <div class="hero-copy">
+            <p class="kicker">Rééducation à domicile, suivie objectivement</p>
+            <h1>Voyez enfin ce que vos patients font entre deux séances.</h1>
+            <p class="lead">
+              Le patient se filme pendant ses exercices prescrits. Son téléphone en extrait le squelette,
+              compte les répétitions, mesure l'amplitude et repère les compensations. Vous retrouvez un
+              suivi objectif, sans jamais recevoir une image.
+            </p>
+            <div class="btn-row">
+              <a class="btn btn-lime btn-lg" href="/">Essayer la démo</a>
+              <a class="btn btn-outline btn-lg" href="#comment">Comment ça marche</a>
+            </div>
+            <ul class="trust">
+              <li><i></i>Tout tourne sur le téléphone</li>
+              <li><i></i>Aucune image stockée</li>
+              <li><i></i>Mesures lisibles, pas de boîte noire</li>
+            </ul>
+          </div>
+
+          <div class="hero-visual">
+            <div class="phone phone-live" aria-label="Écran de séance : une patiente en squat, squelette détecté par le modèle de pose, 8 répétitions sur 12">
+              <div class="live-top">
+                <span class="live-title">Squat</span>
+                <span class="live-set">Série 2 / 3</span>
+              </div>
+              <svg class="cam" viewBox="250 450 700 1200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                <image href="./img/hero-squat.jpg" x="0" y="0" width="1100" height="1650" />
+                <g class="pose">
+                  <path class="bones" d="M754,885L600,892M754,885L859,1066M859,1066L820,941M600,892L677,1092M677,1092L780,956M754,885L592,1133M600,892L486,1128M592,1133L486,1128M592,1133L838,1185M838,1185L703,1342M486,1128L591,1237M591,1237L465,1432M703,1342L655,1369M655,1369L778,1423M703,1342L778,1423M465,1432L430,1457M430,1457L504,1538M465,1432L504,1538" />
+                  <g class="joints">
+                    <circle cx="754" cy="885" r="11" /><circle cx="600" cy="892" r="11" /><circle cx="859" cy="1066" r="11" /><circle cx="677" cy="1092" r="11" /><circle cx="820" cy="941" r="11" /><circle cx="780" cy="956" r="11" /><circle cx="592" cy="1133" r="11" /><circle cx="486" cy="1128" r="11" /><circle cx="703" cy="1342" r="11" /><circle cx="465" cy="1432" r="11" />
+                  </g>
+                  <circle class="knee" cx="838" cy="1185" r="16" /><circle class="knee" cx="591" cy="1237" r="16" />
+                  <g class="angle-tag" transform="translate(658 1190)">
+                    <rect width="112" height="52" rx="26" /><text x="56" y="35">73°</text>
+                  </g>
+                </g>
+              </svg>
+              <div class="cam-shade" aria-hidden="true"></div>
+              <div class="live-count">
+                <span class="live-num">8</span><span class="live-of">/ 12</span>
+                <span class="live-lbl">répétitions</span>
+              </div>
+              <div class="live-tiles">
+                <div class="tile"><span>Profondeur</span><b>73°</b></div>
+                <div class="tile"><span>Asymétrie</span><b>1°</b></div>
+                <div class="tile"><span>Tronc</span><b>33°</b></div>
+              </div>
+            </div>
+
+            <div class="float-card float-rep">
+              <span class="dot"></span>
+              <div><b>Rep complète</b><span>Cible 100° atteinte</span></div>
+            </div>
+            <div class="float-card float-privacy">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <rect x="4" y="9" width="12" height="8" rx="2" /><path d="M7 9V6.5a3 3 0 0 1 6 0V9" />
+              </svg>
+              <div><b>0 image envoyée</b><span>33 points, rien d'autre</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Faits -->
+      <section class="facts">
+        <div class="wrap facts-in">
+          <div class="fact"><b>33</b><span>points articulaires suivis en temps réel</span></div>
+          <div class="fact"><b>0</b><span>image stockée ou transmise</span></div>
+          <div class="fact"><b>5</b><span>exercices dans la bibliothèque de démo</span></div>
+          <div class="fact"><b>100 %</b><span>du calcul sur le téléphone du patient</span></div>
+        </div>
+      </section>
+
+      <!-- Technologie -->
+      <section class="section" id="techno">
+        <div class="wrap">
+          <p class="kicker center">Ce qu'il y a sous le capot</p>
+          <h2 class="center">Une technologie de laboratoire, dans la poche du patient.</h2>
+          <div class="cards3">
+            <article class="card">
+              <div class="card-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="6" width="18" height="12" rx="3" /><circle cx="12" cy="12" r="3" /><path d="M8 3h8" />
+                </svg>
+              </div>
+              <h3>Estimation de pose sur l'appareil</h3>
+              <p>
+                Un modèle de pose (BlazePose) tourne directement sur le téléphone, en temps réel, sur un
+                appareil milieu de gamme. Pas de capteur, pas de serveur, pas de flux vidéo qui sort.
+              </p>
+            </article>
+            <article class="card">
+              <div class="card-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 18 L10 8 L16 14 L20 6" /><path d="M4 6v12h16" />
+                </svg>
+              </div>
+              <h3>Scoring par angles articulaires</h3>
+              <p>
+                Le score travaille en angles, pas en positions de points : il reste robuste au cadrage, à la
+                morphologie et à la vitesse. Chaque exercice est une fiche de seuils lisibles, ajustable par
+                un kiné sans réentraîner quoi que ce soit.
+              </p>
+            </article>
+            <article class="card">
+              <div class="card-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="5" r="2" /><path d="M12 7v6M12 13l-4 6M12 13l4 6M8 10l4 1 4-1" />
+                </svg>
+              </div>
+              <h3>Replay en squelette, pas en vidéo</h3>
+              <p>
+                Le kiné revoit le geste en squelette animé, en 2D ou en 3D orbitable, avec la courbe d'angle
+                et les marqueurs de répétitions. Exactement le visuel dont il a besoin, et aucune image du
+                patient ne quitte son téléphone.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pour qui -->
+      <section class="section section-cream" id="kines">
+        <div class="wrap">
+          <p class="kicker center">Pour qui</p>
+          <h2 class="center">Un produit à deux faces : le patient le vit, le kiné le prescrit.</h2>
+          <div class="tiers">
+            <article class="tier">
+              <img class="tier-photo" src="./img/patiente-maison.jpg" alt="Une patiente s'étire sur un tapis chez elle, son ordinateur ouvert devant elle" width="1000" height="1500" loading="lazy" />
+              <span class="tier-tag">Patient</span>
+              <h3>Des séances guidées qui rendent la progression visible</h3>
+              <ul class="checks">
+                <li>Séance du jour issue du programme prescrit</li>
+                <li>Compteur de répétitions et amplitude en direct</li>
+                <li>Bilan de séance, historique et replay de ses mouvements</li>
+                <li>Rien à installer pour la démo : un navigateur suffit</li>
+              </ul>
+              <a class="btn btn-dark" href="/">Ouvrir la démo</a>
+            </article>
+            <article class="tier tier-featured">
+              <img class="tier-photo" src="./img/kine-elastique.jpg" alt="Un kiné guide le geste d'une patiente qui travaille avec un élastique" width="900" height="600" loading="lazy" />
+              <span class="tier-tag">Kiné libéral</span>
+              <h3>Un suivi objectif de ce qui a été fait, et comment</h3>
+              <ul class="checks">
+                <li>Programme par exercice : séries, répétitions, amplitude cible</li>
+                <li>Amplitudes et asymétries dans le temps, pas du déclaratif</li>
+                <li>Replay squelette de chaque répétition</li>
+                <li>Seuils cliniques définis avec vous, pas par un modèle opaque</li>
+              </ul>
+              <a class="btn btn-lime" href="#partenaires">Devenir kiné partenaire</a>
+            </article>
+            <article class="tier">
+              <img class="tier-photo" src="./img/cabinet.jpg" alt="Un praticien et un patient autour d'une tablette" width="900" height="506" loading="lazy" />
+              <span class="tier-tag">Cabinet, réseau</span>
+              <h3>Une brique MyTwin, prête à s'insérer dans l'existant</h3>
+              <ul class="checks">
+                <li>Même socle que les autres usecases MyTwin : comptes, consentements, questionnaires</li>
+                <li>Protocoles partagés entre praticiens</li>
+                <li>Données locales par défaut, pas d'image à héberger</li>
+                <li>Interface kiné web, à cadrer avec les premiers partenaires</li>
+              </ul>
+              <a class="btn btn-dark" href="#partenaires">En discuter</a>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- Comment ça marche -->
+      <section class="section" id="comment">
+        <div class="wrap">
+          <p class="kicker center">Comment ça marche</p>
+          <h2 class="center">Trois étapes, et plus d'angle mort entre deux rendez-vous.</h2>
+
+          <div class="steps">
+            <article class="step">
+              <div class="step-visual">
+                <img class="photo" src="./img/kine-genou.jpg" alt="Un kinésithérapeute examine le genou fléchi d'un patient allongé" width="1200" height="800" loading="lazy" />
+                <div class="mini mini-program">
+                  <div class="mini-head">Programme · Genou</div>
+                  <div class="mini-row"><span class="mini-dot">1</span><div><b>Squat</b><span>3 × 12 · cible 100°</span></div></div>
+                  <div class="mini-row"><span class="mini-dot">2</span><div><b>Fente avant</b><span>3 × 10 par jambe</span></div></div>
+                  <div class="mini-row"><span class="mini-dot">3</span><div><b>Pont fessier</b><span>2 × 15 · tenue 3 s</span></div></div>
+                  <div class="mini-foot">6 semaines · 5 séances / semaine · ≈ 12 min</div>
+                </div>
+              </div>
+              <div class="step-copy">
+                <span class="step-num">01</span>
+                <h3>Prescrivez le programme</h3>
+                <ul class="checks">
+                  <li>Choisissez les exercices dans la bibliothèque</li>
+                  <li>Fixez séries, répétitions, tenue et amplitude cible</li>
+                  <li>Individualisez un seuil sans toucher à la fiche de l'exercice</li>
+                </ul>
+              </div>
+            </article>
+
+            <article class="step step-rev">
+              <div class="step-visual">
+                <img class="photo" src="./img/patient-salon.jpg" alt="Une patiente fait son exercice au sol dans son salon, téléphone posé devant elle" width="900" height="506" loading="lazy" />
+                <div class="mini mini-today">
+                  <div class="today-kicker">Séance du jour</div>
+                  <div class="today-name">Genou · semaine 3</div>
+                  <div class="today-steps">
+                    <div class="ts"><i style="width:100%"></i><span>Squat</span></div>
+                    <div class="ts"><i style="width:60%"></i><span>Fente</span></div>
+                    <div class="ts"><i style="width:0"></i><span>Pont</span></div>
+                  </div>
+                  <div class="today-cta">Reprendre la séance</div>
+                </div>
+              </div>
+              <div class="step-copy">
+                <span class="step-num">02</span>
+                <h3>Le patient fait sa séance, guidé</h3>
+                <ul class="checks">
+                  <li>Téléphone posé à hauteur de hanches, caméra plein cadre</li>
+                  <li>Décompte, séries, répétitions et mesures en surimpression</li>
+                  <li>Bilan immédiat : amplitude par répétition, exercice suivant</li>
+                </ul>
+              </div>
+            </article>
+
+            <article class="step">
+              <div class="step-visual">
+                <img class="photo" src="./img/suivi-tablette.jpg" alt="Une praticienne montre des résultats sur tablette à son patient" width="1200" height="675" loading="lazy" />
+                <div class="mini mini-replay">
+                  <div class="mini-head">Replay · Squat · série 2</div>
+                  <svg viewBox="0 0 300 110" class="curve" aria-hidden="true">
+                    <line x1="0" y1="78" x2="300" y2="78" stroke="#bde3de" stroke-dasharray="4 4" />
+                    <text x="4" y="74" font-size="9" fill="#5d716e" font-family="IBM Plex Mono, monospace">cible 100°</text>
+                    <path d="M0 20 C20 20 25 90 45 90 S70 20 90 20 S115 86 135 86 S160 20 180 20 S205 82 225 82 S250 20 270 20 S290 60 300 60" fill="none" stroke="#0d9488" stroke-width="2.5" />
+                    <g fill="#0d9488">
+                      <circle cx="45" cy="90" r="3" /><circle cx="135" cy="86" r="3" /><circle cx="225" cy="82" r="3" />
+                    </g>
+                    <text x="36" y="104" font-size="9" fill="#0b7f76" font-family="IBM Plex Mono, monospace">92°</text>
+                    <text x="126" y="104" font-size="9" fill="#0b7f76" font-family="IBM Plex Mono, monospace">96°</text>
+                    <text x="216" y="104" font-size="9" fill="#0b7f76" font-family="IBM Plex Mono, monospace">98°</text>
+                  </svg>
+                  <div class="mini-metrics">
+                    <div><span>Reps</span><b>12 / 12</b></div>
+                    <div><span>Profondeur</span><b>92°</b></div>
+                    <div><span>Asymétrie</span><b>4°</b></div>
+                  </div>
+                </div>
+              </div>
+              <div class="step-copy">
+                <span class="step-num">03</span>
+                <h3>Suivez, et ajustez</h3>
+                <ul class="checks">
+                  <li>Séances faites, amplitudes dans le temps, compensations qui persistent</li>
+                  <li>Replay du mouvement en squelette, 2D ou 3D</li>
+                  <li>Un protocole ajusté sur des mesures, pas sur un souvenir</li>
+                </ul>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bibliothèque -->
+      <section class="section section-dark" id="exercices">
+        <div class="wrap">
+          <div class="split-head">
+            <div>
+              <p class="kicker light">Bibliothèque</p>
+              <h2>Des exercices définis par des seuils lisibles, pas par une vidéo de référence.</h2>
+            </div>
+            <p class="lead light">
+              Chaque fiche dit quel angle pilote la répétition, dans quel sens, et d'où viennent ses seuils.
+              Le statut indique si un kiné l'a relue. La bibliothèque se co-écrit avec nos partenaires.
+            </p>
+          </div>
+          <div class="ex-grid">
+            <article class="ex">
+              <div class="ex-top"><span class="zone">Genou</span><span class="status ok">Validé</span></div>
+              <h3>Squat</h3>
+              <p>Angle du genou, flexion. Repos 160°, cible 100°. Profondeur, asymétrie et tronc mesurés.</p>
+              <span class="ex-code">kneeL · kneeR · trunkLean</span>
+            </article>
+            <article class="ex">
+              <div class="ex-top"><span class="zone">Genou</span><span class="status">À valider</span></div>
+              <h3>Fente avant</h3>
+              <p>Unilatéral : suit le genou le plus fléchi. Cible 90°. L'asymétrie n'est pas mesurée, c'est la nature du geste.</p>
+              <span class="ex-code">kneeL | kneeR · trunkLean</span>
+            </article>
+            <article class="ex">
+              <div class="ex-top"><span class="zone">Hanche</span><span class="status">À valider</span></div>
+              <h3>Pont fessier</h3>
+              <p>Angle de hanche, extension. Cible 170°, dix degrés sous la ligne épaule-hanche-genou.</p>
+              <span class="ex-code">hipL · hipR</span>
+            </article>
+            <article class="ex">
+              <div class="ex-top"><span class="zone">Épaule</span><span class="status">À valider</span></div>
+              <h3>Élévation d'épaule</h3>
+              <p>Élévation huméro-thoracique, extension. Cible 90°, l'horizontale des protocoles d'épaule.</p>
+              <span class="ex-code">shoulderL · shoulderR</span>
+            </article>
+            <article class="ex">
+              <div class="ex-top"><span class="zone">Cheville</span><span class="status">À valider</span></div>
+              <h3>Montée sur pointes</h3>
+              <p>Flexion plantaire. Seul l'écart de 25° est sourcé : fiche à calibrer sur de vraies frames.</p>
+              <span class="ex-code">ankleL · ankleR</span>
+            </article>
+            <article class="ex ex-more">
+              <h3>Le vôtre ?</h3>
+              <p>Un exercice entre dans la bibliothèque avec un angle pilote, deux seuils et une source. C'est ce travail que nous voulons faire avec vous.</p>
+              <a class="btn btn-lime" href="#partenaires">Proposer un exercice</a>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- Mesures -->
+      <section class="section">
+        <div class="wrap">
+          <p class="kicker center">Ce que l'on mesure</p>
+          <h2 class="center">Des critères explicables au patient comme au kiné.</h2>
+          <div class="metrics">
+            <div class="metric">
+              <b>Répétitions</b>
+              <p>Une rep commence quand l'angle pilote quitte le repos et se termine quand il y revient. Elle est complète si l'extrême franchit la cible.</p>
+            </div>
+            <div class="metric">
+              <b>Amplitude</b>
+              <p>L'angle extrême de chaque répétition. Sa courbe dans le temps est la progression du patient, séance après séance.</p>
+            </div>
+            <div class="metric">
+              <b>Asymétrie</b>
+              <p>L'écart gauche-droite au point extrême. Retirée quand elle n'a pas de sens, comme sur une fente.</p>
+            </div>
+            <div class="metric">
+              <b>Tronc</b>
+              <p>L'inclinaison maximale du segment hanches-épaules sur la répétition, pour repérer une compensation.</p>
+            </div>
+          </div>
+          <p class="note center">
+            MyCoach affiche des mesures. Il ne donne pas de consigne corrective sur un protocole prescrit, tant que
+            la question du statut de dispositif médical n'est pas tranchée.
+          </p>
+        </div>
+      </section>
+
+      <!-- Pourquoi maintenant -->
+      <section class="section section-cream">
+        <div class="wrap">
+          <p class="kicker center">Pourquoi maintenant</p>
+          <h2 class="center">Trois lignes qui convergent.</h2>
+          <div class="cards3">
+            <article class="card">
+              <span class="card-num">1</span>
+              <h3>La technologie est devenue une commodité</h3>
+              <p>Ce qui exigeait un laboratoire de biomécanique il y a cinq ans tourne aujourd'hui en temps réel sur un smartphone, sans capteur.</p>
+            </article>
+            <article class="card">
+              <span class="card-num">2</span>
+              <h3>Le marché est validé, le kiné de ville ne l'est pas</h3>
+              <p>La kinésithérapie digitale a prouvé sa valeur sur un modèle assurantiel américain. Le kiné libéral français reste entièrement non adressé.</p>
+            </article>
+            <article class="card">
+              <span class="card-num">3</span>
+              <h3>La demande vient des kinés eux-mêmes</h3>
+              <p>Le problème nous a été remonté par des kinés du réseau : l'envie était là, c'est le comment technique qui manquait.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA final -->
+      <section class="cta" id="partenaires">
+        <div class="wrap cta-in">
+          <img class="cta-photo" src="./img/kine-halteres.jpg" alt="Un kiné accompagne une patiente qui soulève des haltères légers" width="1200" height="800" loading="lazy" />
+          <div>
+            <p class="kicker light">Kinés partenaires de design</p>
+            <h2>Mettez la démo entre les mains d'un kiné. Idéalement vous.</h2>
+            <p class="lead light">
+              Nous cherchons deux ou trois kinés pour définir la bibliothèque d'exercices initiale et les
+              critères de compensation qui comptent cliniquement. La démo est là. Vos retours décident de la V1.
+            </p>
+          </div>
+          <div class="cta-actions">
+            <a class="btn btn-lime btn-lg" href="/">Essayer la démo</a>
+            <!-- TODO : remplacer par l'adresse de contact du projet -->
+            <a class="btn btn-outline-light btn-lg" href="mailto:contact@example.com?subject=MyCoach%20%E2%80%94%20kin%C3%A9%20partenaire">Nous écrire</a>
+            <span class="cta-small">Démo web, sans compte ni installation. Les données restent sur votre téléphone.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section class="section" id="faq">
+        <div class="wrap wrap-narrow">
+          <p class="kicker center">Questions fréquentes</p>
+          <h2 class="center">Ce qu'on nous demande en premier.</h2>
+          <div class="faq">
+            <details>
+              <summary>Où vont les vidéos du patient ?</summary>
+              <p>Nulle part. La caméra alimente le modèle de pose sur le téléphone, et seule la série temporelle de 33 points articulaires est conservée, en local. Aucune image n'est enregistrée ni transmise.</p>
+            </details>
+            <details>
+              <summary>Est-ce un dispositif médical ?</summary>
+              <p>La démo affiche des mesures sans donner de consigne corrective, ce qui la maintient hors du périmètre dispositif médical. Dès qu'une version donnera un retour correctif sur un protocole prescrit, la question du marquage se posera et conditionnera ce que la V1 peut promettre.</p>
+            </details>
+            <details>
+              <summary>Le score est-il de l'intelligence artificielle ?</summary>
+              <p>L'IA est dans l'estimation de pose. Le score, lui, est une machine à états sur des seuils d'angles, paramétrée par exercice. C'est volontaire : un kiné peut lire, expliquer et ajuster chaque seuil sans réentraînement.</p>
+            </details>
+            <details>
+              <summary>D'où viennent les seuils des exercices ?</summary>
+              <p>Du squat d'origine du projet et de la littérature pour les quatre autres exercices, avec leurs sources dans la documentation. Aucun seuil hors squat n'a encore été relu par un kiné, et l'application l'affiche. C'est précisément le travail que nous proposons aux partenaires.</p>
+            </details>
+            <details>
+              <summary>Quel téléphone faut-il ?</summary>
+              <p>Un smartphone récent de milieu de gamme suffit. La démo tourne dans le navigateur, en HTTPS, et propose trois tailles de modèle selon la puissance de l'appareil. Le téléphone se pose à hauteur de hanches, écran vers soi.</p>
+            </details>
+            <details>
+              <summary>Où est l'interface du kiné ?</summary>
+              <p>La démo couvre le parcours patient, avec un programme prescrit fixé pour l'exercice. L'interface de prescription et de suivi est la prochaine brique, à cadrer avec les premiers kinés partenaires.</p>
+            </details>
+            <details>
+              <summary>Est-ce une application à part ou une partie de MyTwin ?</summary>
+              <p>MyCoach est un usecase MyTwin : il réutilise le socle existant, comptes, consentements, questionnaires. C'est le premier où le professionnel de santé n'est pas destinataire du produit mais prescripteur.</p>
+            </details>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="wrap footer-in">
+        <div class="footer-brand">
+          <a class="brand" href="#top">
+            <span class="brand-mark" aria-hidden="true"></span>
+            <span class="brand-name">MyCoach</span>
+          </a>
+          <p>Suivi objectif des exercices de rééducation à domicile. Un usecase MyTwin.</p>
+        </div>
+        <div class="footer-col">
+          <b>Produit</b>
+          <a href="/">Démo</a>
+          <a href="#comment">Comment ça marche</a>
+          <a href="#exercices">Bibliothèque</a>
+        </div>
+        <div class="footer-col">
+          <b>Kinés</b>
+          <a href="#kines">Pour les kinés</a>
+          <a href="#partenaires">Devenir partenaire</a>
+          <a href="#faq">FAQ</a>
+        </div>
+      </div>
+      <div class="wrap footer-legal">
+        <p>
+          MyCoach affiche des mesures de mouvement. Il ne remplace ni l'examen clinique ni l'avis d'un
+          professionnel de santé, et ne garantit pas les résultats d'une rééducation. Démo : aucune donnée
+          ne quitte votre appareil.
+        </p>
+        <span>© 2026 MyTwin · Photos : SUNDAY II SUNDAY, yury kirillov, Kari Shea, Vitaly Gariev, Sincerely Media sur <a href="https://unsplash.com" rel="noopener">Unsplash</a></span>
+      </div>
+    </footer>
+  </body>
+</html>
