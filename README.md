@@ -1,22 +1,41 @@
-# MyCoach — démo patient (parcours mobile)
+# MyCoach — démo (landing, espace kiné, app patient)
 
 Démo web du usecase MyTwin « MyCoach » (voir `docs/cadrage/`) : pose estimation on-device,
 scoring déterministe par angles articulaires, replay du mouvement en squelette.
 
-L'interface suit la maquette « Refonte UI/UX santé » : parcours patient mobile en six écrans,
-design system blanc / teal `#0d9488`, séance du jour issue d'un programme prescrit.
+Trois pages, un même habillage (vert profond, lime, fond crème, Inter) :
+
+| Chemin | Page | Code |
+|---|---|---|
+| `/landing/` | Landing, style Physitrack. « Essayer la démo » ouvre le choix kiné / patient | `landing/` |
+| `/kine/` | Espace kiné : compte, cinq patients fictifs, fiche patient, prescription, bibliothèque | `src/kine/` |
+| `/` | App patient : parcours mobile de la maquette « Refonte UI/UX santé » | `src/ui/` |
+
+Le teal `#0d9488` reste la couleur des données (barres, courbes, mesures) des deux côtés.
+Rien ne quitte le navigateur : voir l'ADR 0008 pour l'espace kiné et son lien avec l'app patient.
 
 ## Lancer
 
 ```bash
 npm install
 npm run dev      # http://localhost:5173
-npm test         # tests unitaires (angles, compteur de reps)
+npm test         # tests unitaires (angles, compteur de reps, indicateurs kiné)
 npm run build
 ```
 
-La landing (`landing/index.html`, style Physitrack) est servie sous `/landing/` en dev comme en prod ;
-la démo reste à la racine.
+### Espace kiné
+
+« Remplir avec un compte de démo » crée un compte fictif en un clic. Les cinq patients sont
+générés à chaque chargement à partir de la date du jour (`src/kine/data.ts`) : chacun illustre
+un cas (progression, compensation du tronc, observance exemplaire, décrochage, asymétrie).
+
+Sur un même navigateur, les deux démos se parlent :
+
+- modifier le programme de **Claire Martin** côté kiné change la séance du jour côté patient ;
+- une séance faite dans l'app patient apparaît dans la fiche de Claire, marquée « En vrai ».
+
+Les CGU, la politique de confidentialité et les mentions légales (`src/kine/legal.ts`) sont des
+brouillons à faire valider par un juriste ; ils l'affichent en tête.
 
 Le serveur de dev est en HTTPS (certificat auto-signé via `@vitejs/plugin-basic-ssl`) parce que
 la caméra exige un contexte sécurisé. Accepter l'avertissement du navigateur une fois.
@@ -86,14 +105,22 @@ src/
   scoring/    exercise.ts (bibliothèque : angle pilote, sens du mouvement, seuils, dose par défaut)
               repCounter.ts (machine à états rest → down → up, métriques par rep)
   program/    types.ts (Program, Prescription — la forme que renverra l'interface kiné)
-              demo.ts (DEMO_PROGRAM : le seul endroit codé en dur, ADR 0007)
+              demo.ts (DEMO_PROGRAM / DEMO_PLAN : le seul endroit codé en dur, ADR 0007 ; reprend le plan modifié côté kiné, ADR 0008)
               progress.ts (avancement dérivé des séances : semaine, séries faites, tendance)
               runner.ts (séance en cours : exercices, séries, dose effective)
   storage/    db.ts (IndexedDB via idb : une entrée = une série, groupée par workoutId)
   ui/         shell.ts (cadre téléphone, barre d'état, onglets, formats)
               home.ts / exercises.ts / live.ts / summary.ts / replay.ts / history.ts / profile.ts
               skeleton.ts (dessin 2D en bâtons, dessin 3D depuis les coordonnées monde ancré aux chevilles, interpolation)
-              style.css (design system de la maquette : couleurs, rayons, typographies)
+              pictos.ts (pictogrammes d'exercice en bâtons, partagés avec l'espace kiné)
+              style.css (design system : couleurs, rayons, typographies)
+  kine/       data.ts (cinq patients fictifs, générés de façon déterministe)
+              stats.ts (observance, amplitudes, alertes — dérivées des séances)
+              store.ts (compte, consentements, patients ajoutés, plans ; séances réelles lues dans IndexedDB)
+              legal.ts (CGU, confidentialité, mentions légales — brouillons)
+              views/ (inscription, cadre, patients, fiche patient, prescription, bibliothèque, compte)
+landing/      index.html, landing.css, img/ (photos Unsplash, crédits dans img/CREDITS.md)
+kine/         index.html (entrée de l'espace kiné)
 ```
 
 ## Métriques du squat

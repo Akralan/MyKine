@@ -2,10 +2,9 @@ import { computeProgress, doseOf, type TodayItem } from "../program/progress";
 import type { Dose, Program } from "../program/types";
 import { EXERCISE_LIST, type BodyZone, type ExerciseDefinition } from "../scoring/exercise";
 import { listSessions } from "../storage/db";
+import { picto } from "./pictos";
 import { el, escapeHtml, mountTabScreen, type TabName } from "./shell";
 
-const THUMB = `<span>photo<br>exercice</span>`;
-const THUMB_WIDE = `<span>photo exercice</span>`;
 
 function cap(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
@@ -127,7 +126,7 @@ function rowHtml(def: ExerciseDefinition, dose: Dose, item?: TodayItem): string 
   const done = item?.done ?? false;
   return `
     <button class="ex-row${done ? " done" : ""}" data-ex="${def.id}">
-      <span class="thumb">${THUMB}</span>
+      <span class="thumb">${picto(def.id)}</span>
       <span class="body">
         <span class="name">${escapeHtml(def.name)}</span>
         <span class="dose">${escapeHtml(doseText(def, dose))}</span>
@@ -144,7 +143,7 @@ function cardHtml(def: ExerciseDefinition): string {
   const note = def.status === "draft" ? " · à valider" : "";
   return `
     <button class="lib-card" data-ex="${def.id}">
-      <span class="thumb">${THUMB_WIDE}</span>
+      <span class="thumb">${picto(def.id)}</span>
       <span>
         <span class="name">${escapeHtml(def.name)}</span>
         <span class="zone">${escapeHtml(cap(def.zone) + note)}</span>

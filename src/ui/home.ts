@@ -21,6 +21,10 @@ export async function renderHome(
   body.append(
     el(`
     <div class="home-head">
+      <div class="home-brand">
+        <a href="/landing/"><span class="mark" aria-hidden="true"></span>MyCoach</a>
+        <a class="demo" href="/landing/" title="Démo : retour au site">Démo</a>
+      </div>
       <div class="home-date">${longDate(new Date())}</div>
       <div class="home-hello">Bonjour ${escapeHtml(DEMO_PATIENT.firstName)}</div>
     </div>`),

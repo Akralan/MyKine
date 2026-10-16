@@ -11,10 +11,11 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      // Deux pages : la démo à la racine, la landing sous /landing/.
+      // Trois pages : la démo patient à la racine, la landing sous /landing/, l'espace kiné sous /kine/.
       input: {
         app: fileURLToPath(new URL("./index.html", import.meta.url)),
         landing: fileURLToPath(new URL("./landing/index.html", import.meta.url)),
+        kine: fileURLToPath(new URL("./kine/index.html", import.meta.url)),
       },
     },
   },

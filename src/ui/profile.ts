@@ -48,7 +48,7 @@ export async function renderProfile(
           return `<div class="kv"><span>${escapeHtml(def?.name ?? pr.exerciseId)}</span><b>${escapeHtml(def ? doseText(def, doseOf(pr)) : "—")}</b></div>`;
         })
         .join("")}
-      <p>Programme codé en dur pour la démo : c'est l'interface kiné, encore à faire, qui le remplacera.</p>
+      <p>Prescrit dans l'espace kiné de démo, sur la fiche de Claire Martin. Une modification faite là-bas s'applique ici au prochain chargement, sur ce navigateur. <a href="/kine/#/patients/claire-martin">Ouvrir l'espace kiné</a></p>
       <button class="btn-ghost" data-a="reset-program">Redémarrer le programme</button>
     </div>`),
     el(`

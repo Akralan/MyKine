@@ -1,4 +1,4 @@
-import type { Program } from "./types";
+import type { Prescription, Program } from "./types";
 
 /**
  * Programme de démonstration, codé en dur — dette assumée (ADR 0007).
@@ -41,6 +41,38 @@ function programStartedOn(): string {
 /** Le patient de la démo. Viendra du compte quand il y en aura un. */
 export const DEMO_PATIENT = { firstName: "Claire" };
 
+/**
+ * Lien avec l'espace kiné de démo (/kine/). Claire y est la patiente `DEMO_PATIENT_ID` ;
+ * quand le kiné modifie son programme, la prescription est écrite sous cette clé du
+ * localStorage, et l'app patient la reprend au chargement suivant. Même navigateur
+ * uniquement : il n'y a pas de backend.
+ */
+export const DEMO_PATIENT_ID = "claire-martin";
+export const KINE_PLANS_KEY = "mycoach.kine.plans";
+
+/** Prescription de départ, celle que le kiné voit avant toute modification. */
+export const DEMO_PLAN: Prescription[] = [
+  { exerciseId: "squat", sets: 3, reps: 12, targetDeg: 100 },
+  { exerciseId: "lunge", sets: 3, reps: 10 },
+  { exerciseId: "glute-bridge", sets: 2, reps: 15, holdMs: 3000 },
+];
+
+function isPrescription(x: unknown): x is Prescription {
+  const p = x as Prescription;
+  return !!p && typeof p.exerciseId === "string" && p.sets > 0 && p.reps > 0;
+}
+
+/** Prescription modifiée par le kiné pour Claire, si elle existe et a une forme valide. */
+function planFromKine(): Prescription[] | null {
+  try {
+    const all = JSON.parse(localStorage.getItem(KINE_PLANS_KEY) ?? "null") as Record<string, unknown> | null;
+    const plan = all?.[DEMO_PATIENT_ID];
+    return Array.isArray(plan) && plan.length > 0 && plan.every(isPrescription) ? plan : null;
+  } catch {
+    return null;
+  }
+}
+
 export const DEMO_PROGRAM: Program = {
   id: "demo-genou",
   label: "Genou",
@@ -49,11 +81,7 @@ export const DEMO_PROGRAM: Program = {
   weeks: 6,
   sessionsPerWeek: 5,
   estimatedMinutes: 12,
-  plan: [
-    { exerciseId: "squat", sets: 3, reps: 12, targetDeg: 100 },
-    { exerciseId: "lunge", sets: 3, reps: 10 },
-    { exerciseId: "glute-bridge", sets: 2, reps: 15, holdMs: 3000 },
-  ],
+  plan: planFromKine() ?? DEMO_PLAN,
 };
 
 /** Remet le programme à son premier jour (écran Profil). */

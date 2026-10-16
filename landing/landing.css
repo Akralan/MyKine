@@ -751,3 +751,58 @@ h3 { font-size: 1.2rem; line-height: 1.3; }
   html { scroll-behavior: auto; }
   .btn, .faq summary::after, .ex { transition: none; }
 }
+
+/* --- Menu « Essayer la démo » ------------------------------------------------------- */
+
+.demo-menu { position: relative; display: inline-flex; }
+.demo-menu .chev { width: 16px; height: 16px; margin-right: -4px; transition: transform 0.15s ease; }
+.demo-menu button[aria-expanded="true"] .chev { transform: rotate(180deg); }
+button.btn { border: 0; cursor: pointer; font-family: inherit; }
+.demo-pop {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  z-index: 30;
+  width: 300px;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+.demo-pop[hidden] { display: none; }
+.demo-pop a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 12px;
+  border-radius: 12px;
+  color: var(--ink);
+}
+.demo-pop a:hover, .demo-pop a:focus-visible { background: var(--cream); outline: none; }
+.demo-pop b { display: block; font-size: 15px; }
+.demo-pop small { display: block; font-size: 13px; color: var(--muted); line-height: 1.35; margin-top: 1px; }
+.demo-ico {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--deep);
+  color: var(--lime);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.demo-ico svg { width: 22px; height: 22px; }
+.nav .demo-pop { left: auto; right: 0; }
+.cta .demo-menu { width: 100%; }
+.cta-actions > .demo-menu .btn { width: auto; }
+
+@media (max-width: 1024px) {
+  .hero .demo-pop { left: 50%; transform: translateX(-50%); }
+}
+@media (max-width: 640px) {
+  .demo-pop { width: min(300px, calc(100vw - 32px)); }
+}
